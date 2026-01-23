@@ -214,3 +214,10 @@ infra_model.pt
 sector_model.pt
 SwarajDesk_CV_dataset_splitted
 EXECUTION.txt
+Test_Images
+terraform.tfvars
+
+.terraform/
+*.tfstate*
+terraform
+*.txt
