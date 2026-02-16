@@ -1,0 +1,325 @@
+---
+- name: Provision Infrastructure with Terraform
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+    - name: Apply Terraform
+      community.general.terraform:
+        project_path: terraform/
+        state: present
+      register: tf_result
+
+    - name: Add Vision Model to Inventory
+      add_host:
+        name: "{{ tf_result.outputs.vision_ip.value }}"
+        groups: vision
+        ansible_ssh_user: ubuntu
+
+    - name: Add Voice Model to Inventory
+      add_host:
+        name: "{{ tf_result.outputs.voice_ip.value }}"
+        groups: voice
+        ansible_ssh_user: ubuntu
+
+    - name: Add Abuse Model to Inventory
+      add_host:
+        name: "{{ tf_result.outputs.abuse_ip.value }}"
+        groups: abuse
+        ansible_ssh_user: ubuntu
+
+    - name: Wait for SSH to become available
+      wait_for:
+        port: 22
+        host: "{{ item }}"
+        search_regex: OpenSSH
+        delay: 10
+        timeout: 320
+      loop:
+        - "{{ tf_result.outputs.vision_ip.value }}"
+        - "{{ tf_result.outputs.voice_ip.value }}"
+        - "{{ tf_result.outputs.abuse_ip.value }}"
+
+- name: Common Setup
+  hosts: vision,voice,abuse
+  become: yes
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Install dependencies
+      apt:
+        name:
+          - nginx
+          - git
+          - python3-pip
+          - python3-venv
+          - acl
+        state: present
+
+    - name: Clone repository
+      git:
+        repo: 'https://github.com/Aniroodh1234/SIH_models_monorepo.git'
+        dest: /home/ubuntu/SIH_models_monorepo
+        version: main
+        force: yes
+      become: yes
+      become_user: ubuntu
+
+- name: Inject AWS Secrets
+  hosts: vision,voice,abuse
+  become: yes
+  vars:
+    secret_name: "prod/aimodel"
+    aws_region: "ap-south-1"
+    # Mapping model groups to their respective .env paths
+    env_paths:
+      vision: "/home/ubuntu/SIH_models_monorepo/Models/Vision_model/Fastapi_app/.env"
+      voice: "/home/ubuntu/SIH_models_monorepo/Models/voice_chat_assistant/.env"
+      abuse: "/home/ubuntu/SIH_models_monorepo/Models/Abuse_detector_model/.env"
+
+  tasks:
+    - name: Install boto3/botocore for AWS modules
+      pip:
+        name:
+          - boto3
+          - botocore
+        executable: pip3
+
+    - name: Fetch secret JSON from AWS Secrets Manager
+      set_fact:
+        aws_secret_raw: "{{ lookup('community.aws.aws_secret', secret_name, region=aws_region) }}"
+
+    - name: Convert JSON string to dict
+      set_fact:
+        aws_secret: "{{ aws_secret_raw | from_json }}"
+
+    - name: Write .env file from secret
+      copy:
+        dest: "{{ item.value }}"
+        content: |
+          {% for key, value in aws_secret.items() %}
+          {{ key }}={{ value }}
+          {% endfor %}
+        mode: "0600"
+        owner: ubuntu
+        group: ubuntu
+      loop: "{{ env_paths | dict2items }}"
+      when: inventory_hostname in groups[item.key]
+
+- name: Configure Vision Model
+  hosts: vision
+  become: yes
+  vars:
+    app_dir: /home/ubuntu/SIH_models_monorepo/Models/Vision_model/Fastapi_app
+    venv_dir: "{{ app_dir }}/venv"
+    service_name: vision-service
+  tasks:
+    - name: Create virtualenv
+      command: python3 -m venv {{ venv_dir }}
+      args:
+        creates: "{{ venv_dir }}"
+      become_user: ubuntu
+
+    - name: Install requirements
+      pip:
+        requirements: "{{ app_dir }}/requirements.txt"
+        virtualenv: "{{ venv_dir }}"
+      become_user: ubuntu
+
+    - name: Setup Systemd Service
+      copy:
+        dest: /etc/systemd/system/{{ service_name }}.service
+        content: |
+          [Unit]
+          Description=Vision Model Service
+          After=network.target
+
+          [Service]
+          User=ubuntu
+          Group=ubuntu
+          # WorkingDirectory is one level up as per user instruction:
+          # cd SIH_models_monorepo/Models/Vision_model/Fastapi_app/
+          # uvicorn Fastapi_app.main:app (Wait, command was 'uvicorn Fastapi_app.main:app' from INSIDE Fastapi_app?)
+          # Actually user said: cd SIH_models_monorepo/Models/Vision_model/ && cd Fastapi_app/ && cd .. && nohup uvicorn Fastapi_app.main:app
+          # So effectively running from 'SIH_models_monorepo/Models/Vision_model/'
+          WorkingDirectory=/home/ubuntu/SIH_models_monorepo/Models/Vision_model/
+          Environment="PATH={{ venv_dir }}/bin:/usr/local/bin:/usr/bin:/bin"
+          ExecStart={{ venv_dir }}/bin/uvicorn Fastapi_app.main:app --host 0.0.0.0 --port 8002
+          Restart=always
+
+          [Install]
+          WantedBy=multi-user.target
+      notify: Restart Vision Service
+
+    - name: Enable and Start Vision Service
+      systemd:
+        name: "{{ service_name }}"
+        enabled: yes
+        state: started
+        daemon_reload: yes
+
+    - name: Configure Nginx
+      template:
+        src: templates/vision_nginx.conf.j2
+        dest: /etc/nginx/sites-available/vision-ani
+      notify: Reload Nginx
+
+    - name: Enable Nginx Site
+      file:
+        src: /etc/nginx/sites-available/vision-ani
+        dest: /etc/nginx/sites-enabled/vision-ani
+        state: link
+      notify: Reload Nginx
+
+  handlers:
+    - name: Restart Vision Service
+      systemd:
+        name: "{{ service_name }}"
+        state: restarted
+    - name: Reload Nginx
+      service:
+        name: nginx
+        state: reloaded
+
+- name: Configure Voice Model
+  hosts: voice
+  become: yes
+  vars:
+    app_dir: /home/ubuntu/SIH_models_monorepo/Models/voice_chat_assistant
+    venv_dir: "{{ app_dir }}/venv"
+    service_name: voice-service
+  tasks:
+    - name: Create virtualenv
+      command: python3 -m venv {{ venv_dir }}
+      args:
+        creates: "{{ venv_dir }}"
+      become_user: ubuntu
+
+    - name: Install requirements
+      pip:
+        requirements: "{{ app_dir }}/requirements.txt"
+        virtualenv: "{{ venv_dir }}"
+      become_user: ubuntu
+
+    - name: Setup Systemd Service
+      copy:
+        dest: /etc/systemd/system/{{ service_name }}.service
+        content: |
+          [Unit]
+          Description=Voice Model Service
+          After=network.target
+
+          [Service]
+          User=ubuntu
+          Group=ubuntu
+          WorkingDirectory={{ app_dir }}
+          Environment="PATH={{ venv_dir }}/bin:/usr/local/bin:/usr/bin:/bin"
+          ExecStart={{ venv_dir }}/bin/uvicorn main:app --host 0.0.0.0 --port 8001
+          Restart=always
+
+          [Install]
+          WantedBy=multi-user.target
+      notify: Restart Voice Service
+
+    - name: Enable and Start Voice Service
+      systemd:
+        name: "{{ service_name }}"
+        enabled: yes
+        state: started
+        daemon_reload: yes
+
+    - name: Configure Nginx
+      template:
+        src: templates/voice_nginx.conf.j2
+        dest: /etc/nginx/sites-available/voice
+      notify: Reload Nginx
+
+    - name: Enable Nginx Site
+      file:
+        src: /etc/nginx/sites-available/voice
+        dest: /etc/nginx/sites-enabled/voice
+        state: link
+      notify: Reload Nginx
+
+  handlers:
+    - name: Restart Voice Service
+      systemd:
+        name: "{{ service_name }}"
+        state: restarted
+    - name: Reload Nginx
+      service:
+        name: nginx
+        state: reloaded
+
+- name: Configure Abuse Model
+  hosts: abuse
+  become: yes
+  vars:
+    app_dir: /home/ubuntu/SIH_models_monorepo/Models/Abuse_detector_model
+    venv_dir: "{{ app_dir }}/venv"
+    service_name: abuse-service
+  tasks:
+    - name: Create virtualenv
+      command: python3 -m venv {{ venv_dir }}
+      args:
+        creates: "{{ venv_dir }}"
+      become_user: ubuntu
+
+    - name: Install requirements
+      pip:
+        requirements: "{{ app_dir }}/requirements.txt"
+        virtualenv: "{{ venv_dir }}"
+      become_user: ubuntu
+
+    - name: Setup Systemd Service
+      copy:
+        dest: /etc/systemd/system/{{ service_name }}.service
+        content: |
+          [Unit]
+          Description=Abuse Model Service
+          After=network.target
+
+          [Service]
+          User=ubuntu
+          Group=ubuntu
+          WorkingDirectory={{ app_dir }}
+          Environment="PATH={{ venv_dir }}/bin:/usr/local/bin:/usr/bin:/bin"
+          ExecStart={{ venv_dir }}/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+          Restart=always
+
+          [Install]
+          WantedBy=multi-user.target
+      notify: Restart Abuse Service
+
+    - name: Enable and Start Abuse Service
+      systemd:
+        name: "{{ service_name }}"
+        enabled: yes
+        state: started
+        daemon_reload: yes
+
+    - name: Configure Nginx
+      template:
+        src: templates/toxic_nginx.conf.j2
+        dest: /etc/nginx/sites-available/toxic-ani
+      notify: Reload Nginx
+
+    - name: Enable Nginx Site
+      file:
+        src: /etc/nginx/sites-available/toxic-ani
+        dest: /etc/nginx/sites-enabled/toxic-ani
+        state: link
+      notify: Reload Nginx
+
+  handlers:
+    - name: Restart Abuse Service
+      systemd:
+        name: "{{ service_name }}"
+        state: restarted
+    - name: Reload Nginx
+      service:
+        name: nginx
+        state: reloaded

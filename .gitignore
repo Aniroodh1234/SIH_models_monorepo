@@ -1,7 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
 .env
-.env.local
-.env.*.local  
 
-_pycache__/
-*.pyc
-*.txt
+# Ansible
+*.retry
+ansible/inventory.ini
+
+# Terraform
+ansible/terraform/.terraform/
+ansible/terraform/*.tfstate
+ansible/terraform/*.tfstate.backup
+ansible/terraform/.terraform.lock.hcl
+
+# IDE
+.vscode/
+.idea/
