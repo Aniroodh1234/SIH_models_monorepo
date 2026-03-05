@@ -8,8 +8,8 @@ provider "aws" {
 # To be safe and automated, let's create a key pair using the local id_rsa.pub if it exists.
 
 resource "aws_key_pair" "deployer" {
-  key_name   = "sih-deployer-key"
-  public_key = file("${path.module}/../.key/id_rsa.pub")
+  key_name_prefix = "sih-deployer-key-"
+  public_key      = file("${path.module}/../.key/id_rsa.pub")
 }
 
 # Security Group

@@ -230,3 +230,16 @@ To start the full end-to-end deployment of all infrastructure and models, simply
 cd ansible/
 ansible-playbook deploy.yml
 ```
+
+### VIEW LOGS
+```bash
+# SSH into them first
+ssh -i ansible/.key/id_rsa ubuntu@<EC2_IP>
+
+sudo journalctl -u vision-service -f    # or voice-service / abuse-service
+```
+
+### VIEW NGINX
+```bash
+sudo systemctl status nginx
+```
