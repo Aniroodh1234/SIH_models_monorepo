@@ -9,7 +9,7 @@ provider "aws" {
 
 resource "aws_key_pair" "deployer" {
   key_name   = "sih-deployer-key"
-  public_key = file("~/.ssh/id_rsa.pub")
+  public_key = file("${path.module}/../.key/id_rsa.pub")
 }
 
 # Security Group

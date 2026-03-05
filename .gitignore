@@ -8,6 +8,7 @@ venv/
 # Ansible
 *.retry
 ansible/inventory.ini
+ansible/.key/id_rsa
 
 # Terraform
 ansible/terraform/.terraform/
@@ -19,3 +20,5 @@ ansible/terraform/.terraform.lock.hcl
 .vscode/
 .idea/
 *.txt
+env.json
+ansible.zip
