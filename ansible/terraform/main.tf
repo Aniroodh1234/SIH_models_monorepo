@@ -12,58 +12,9 @@ resource "aws_key_pair" "deployer" {
   public_key      = file("${path.module}/../.key/id_rsa.pub")
 }
 
-# Security Group
-resource "aws_security_group" "sih_sg" {
-  name        = "sih_models_sg"
-  description = "Allow SSH And HTTP"
-
-  ingress {
-    description = "SSH"
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "HTTP Nginx"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  # Opening app ports for debugging/direct access if needed, though Nginx proxies to them locally.
-  ingress {
-    description = "Abuse Model"
-    from_port   = 8000
-    to_port     = 8000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "Voice Model"
-    from_port   = 8001
-    to_port     = 8001
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "Vision Model"
-    from_port   = 8002
-    to_port     = 8002
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+# Security Group — look up the existing one instead of creating a duplicate
+data "aws_security_group" "sih_sg" {
+  name = "sih_models_sg"
 }
 
 # AMI Data Source for Ubuntu 22.04
@@ -90,7 +41,7 @@ resource "aws_instance" "abuse_model" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = "t2.small"
   key_name      = aws_key_pair.deployer.key_name
-  vpc_security_group_ids = [aws_security_group.sih_sg.id]
+  vpc_security_group_ids = [data.aws_security_group.sih_sg.id]
 
   root_block_device {
     volume_size = 8
@@ -108,7 +59,7 @@ resource "aws_instance" "vision_model" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = "t2.medium"
   key_name      = aws_key_pair.deployer.key_name
-  vpc_security_group_ids = [aws_security_group.sih_sg.id]
+  vpc_security_group_ids = [data.aws_security_group.sih_sg.id]
 
   root_block_device {
     volume_size = 20
@@ -126,7 +77,7 @@ resource "aws_instance" "voice_model" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = "t2.large"
   key_name      = aws_key_pair.deployer.key_name
-  vpc_security_group_ids = [aws_security_group.sih_sg.id]
+  vpc_security_group_ids = [data.aws_security_group.sih_sg.id]
 
   root_block_device {
     volume_size = 50
