@@ -8,61 +8,57 @@ provider "aws" {
 # To be safe and automated, let's create a key pair using the local id_rsa.pub if it exists.
 
 resource "aws_key_pair" "deployer" {
-  key_name   = "sih-deployer-key"
-  public_key = file("~/.ssh/id_rsa.pub")
+  key_name_prefix = "sih-deployer-key-"
+  public_key      = file("${path.module}/../.key/id_rsa.pub")
 }
 
-# Security Group
+# Security Group — created and managed by Terraform
 resource "aws_security_group" "sih_sg" {
-  name        = "sih_models_sg"
-  description = "Allow SSH And HTTP"
+  name_prefix = "sih_models_sg-"
+  description = "SIH Models: SSH + HTTP/S + FastAPI ports"
 
+  # SSH
   ingress {
-    description = "SSH"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # HTTP (Nginx)
   ingress {
-    description = "HTTP Nginx"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # Opening app ports for debugging/direct access if needed, though Nginx proxies to them locally.
+  # HTTPS
   ingress {
-    description = "Abuse Model"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  # FastAPI — Abuse (8000), Voice (8001), Vision (8002)
+  ingress {
     from_port   = 8000
-    to_port     = 8000
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "Voice Model"
-    from_port   = 8001
-    to_port     = 8001
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    description = "Vision Model"
-    from_port   = 8002
     to_port     = 8002
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # Allow all outbound (for pip installs, git clone, API calls)
   egress {
     from_port   = 0
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "sih-models-sg"
   }
 }
 
@@ -83,27 +79,8 @@ data "aws_ami" "ubuntu" {
   owners = ["099720109477"] # Canonical
 }
 
-# 1. Abuse Model - t2.small (8GB is default for t2, but user asked specifically.
-# t2.small has 1 vCPU, 2GB RAM. User request: "abuse model t2.small (8 gb)".
-# GP2 volume size is configured in block_device_mappings.
-resource "aws_instance" "abuse_model" {
-  ami           = data.aws_ami.ubuntu.id
-  instance_type = "t2.small"
-  key_name      = aws_key_pair.deployer.key_name
-  vpc_security_group_ids = [aws_security_group.sih_sg.id]
 
-  root_block_device {
-    volume_size = 8
-    volume_type = "gp2"
-  }
-
-  tags = {
-    Name = "Abuse-Model"
-    Role = "abuse"
-  }
-}
-
-# 2. Vision Model - t2.medium 20gb
+# 1. Vision Model (also runs Abuse model) - t2.medium, 25 GB
 resource "aws_instance" "vision_model" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = "t2.medium"
@@ -111,17 +88,17 @@ resource "aws_instance" "vision_model" {
   vpc_security_group_ids = [aws_security_group.sih_sg.id]
 
   root_block_device {
-    volume_size = 20
+    volume_size = 25
     volume_type = "gp2"
   }
 
   tags = {
-    Name = "Vision-Model"
+    Name = "Vision-Abuse-Combined"
     Role = "vision"
   }
 }
 
-# 3. Voice Model - t2.large 50gb
+# 2. Voice Model - t2.large 50gb
 resource "aws_instance" "voice_model" {
   ami           = data.aws_ami.ubuntu.id
   instance_type = "t2.large"
