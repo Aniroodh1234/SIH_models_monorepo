@@ -18,4 +18,4 @@ ansible/terraform/.terraform.lock.hcl
 # IDE
 .vscode/
 .idea/
-*.txt
+*.txt   
