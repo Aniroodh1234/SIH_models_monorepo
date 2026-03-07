@@ -237,9 +237,14 @@ ansible-playbook deploy.yml
 ssh -i ansible/.key/id_rsa ubuntu@<EC2_IP>
 
 sudo journalctl -u vision-service -f    # or voice-service / abuse-service
+
+sudo systemctl status vision-service
+sudo systemctl status abuse-service
 ```
+
 
 ### VIEW NGINX
 ```bash
 sudo systemctl status nginx
 ```
+
