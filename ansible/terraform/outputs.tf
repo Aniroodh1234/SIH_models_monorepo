@@ -1,7 +1,3 @@
-output "abuse_ip" {
-  value = aws_instance.abuse_model.public_ip
-}
-
 output "vision_ip" {
   value = aws_instance.vision_model.public_ip
 }
