@@ -19,4 +19,7 @@ ansible/terraform/.terraform.lock.hcl
 # IDE
 .vscode/
 .idea/
-*.txt
+
+future_bedrock.txt
+TriFusion VLM–ViT–LLM Autonomous St.txt
+struct.txt
