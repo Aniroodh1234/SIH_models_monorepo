@@ -1,0 +1,574 @@
+# ---
+# # =============================================================================
+# # Play 0: Generate SSH Key Pair (if not exists)
+# # =============================================================================
+# - name: Generate SSH Key Pair
+#   hosts: localhost
+#   connection: local
+#   gather_facts: no
+#   tasks:
+#     - name: Create .key directory
+#       file:
+#         path: "{{ playbook_dir }}/.key"
+#         state: directory
+#         mode: "0700"
+
+#     - name: Generate SSH key pair
+#       community.crypto.openssh_keypair:
+#         path: "{{ playbook_dir }}/.key/id_rsa"
+#         type: rsa
+#         size: 4096
+#         comment: "sih-models-deployer"
+#       register: ssh_key
+
+#     - name: Show public key path
+#       debug:
+#         msg: "SSH public key: {{ playbook_dir }}/.key/id_rsa.pub"
+
+# # =============================================================================
+# # Play 1: Provision Infrastructure with Terraform
+# # =============================================================================
+# - name: Provision Infrastructure with Terraform
+#   hosts: localhost
+#   connection: local
+#   gather_facts: no
+#   tasks:
+#     - name: Terraform Init
+#       command: terraform init -input=false
+#       args:
+#         chdir: "{{ playbook_dir }}/terraform/"
+
+#     - name: Terraform Validate
+#       command: terraform validate
+#       args:
+#         chdir: "{{ playbook_dir }}/terraform/"
+
+#     - name: Terraform Apply
+#       community.general.terraform:
+#         project_path: "{{ playbook_dir }}/terraform/"
+#         state: present
+#       register: tf_result
+
+#     - name: Print Terraform Outputs
+#       debug:
+#         msg:
+#           - "Vision IP: {{ tf_result.outputs.vision_ip.value }}"
+#           - "Voice IP:  {{ tf_result.outputs.voice_ip.value }}"
+#           - "Abuse IP:  {{ tf_result.outputs.abuse_ip.value }}"
+
+#     - name: Add Vision Model to Inventory
+#       add_host:
+#         name: "{{ tf_result.outputs.vision_ip.value }}"
+#         groups: vision
+#         ansible_ssh_user: ubuntu
+#         ansible_ssh_private_key_file: "{{ playbook_dir }}/.key/id_rsa"
+
+#     - name: Add Voice Model to Inventory
+#       add_host:
+#         name: "{{ tf_result.outputs.voice_ip.value }}"
+#         groups: voice
+#         ansible_ssh_user: ubuntu
+#         ansible_ssh_private_key_file: "{{ playbook_dir }}/.key/id_rsa"
+
+#     - name: Add Abuse Model to Inventory
+#       add_host:
+#         name: "{{ tf_result.outputs.abuse_ip.value }}"
+#         groups: abuse
+#         ansible_ssh_user: ubuntu
+#         ansible_ssh_private_key_file: "{{ playbook_dir }}/.key/id_rsa"
+
+#     - name: Wait for SSH to become available
+#       wait_for:
+#         port: 22
+#         host: "{{ item }}"
+#         search_regex: OpenSSH
+#         delay: 10
+#         timeout: 320
+#       loop:
+#         - "{{ tf_result.outputs.abuse_ip.value }}"
+#         - "{{ tf_result.outputs.vision_ip.value }}"
+#         - "{{ tf_result.outputs.voice_ip.value }}"
+
+# # =============================================================================
+# # Play 2: Verify SSH Connectivity to all 3 EC2s
+# # =============================================================================
+# - name: Verify SSH Connectivity
+#   hosts: vision,voice,abuse
+#   gather_facts: no
+#   tasks:
+#     - name: Ping host via SSH
+#       ping:
+
+#     - name: Print hostname confirmation
+#       command: hostname
+#       register: host_out
+
+#     - name: Show connectivity result
+#       debug:
+#         msg: "✅ SSH OK — connected to {{ inventory_hostname }} (hostname: {{ host_out.stdout }})"
+
+# # =============================================================================
+# # Play 3: Common Setup on all 3 EC2 Instances
+# # =============================================================================
+# - name: Common Setup
+#   hosts: vision,voice,abuse
+#   become: yes
+#   tasks:
+#     - name: Update apt cache
+#       apt:
+#         update_cache: yes
+#         cache_valid_time: 3600
+
+#     - name: Install common dependencies
+#       apt:
+#         name:
+#           - nginx
+#           - git
+#           - python3-pip
+#           - python3-venv
+#           - acl
+#         state: present
+
+#     - name: Install FFmpeg (Voice model needs it for audio processing)
+#       apt:
+#         name: ffmpeg
+#         state: present
+#       when: inventory_hostname in groups['voice']
+
+#     - name: Clone repository
+#       git:
+#         repo: 'https://github.com/Aniroodh1234/SIH_models_monorepo.git'
+#         dest: /home/ubuntu/SIH_models_monorepo
+#         version: main
+#         force: yes
+#       become: yes
+#       become_user: ubuntu
+
+#     - name: Remove default Nginx site
+#       file:
+#         path: /etc/nginx/sites-enabled/default
+#         state: absent
+#       notify: Reload Nginx
+
+#   handlers:
+#     - name: Reload Nginx
+#       service:
+#         name: nginx
+#         state: reloaded
+
+# # =============================================================================
+# # Play 4: Inject Hardcoded Environment Variables
+# # =============================================================================
+# - name: Inject Environment Variables
+#   hosts: vision,voice,abuse
+#   become: yes
+#   vars:
+#     env_content_common: |
+#       HUGGINGFACEHUB_API_TOKEN=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
+#       LANGCHAIN_API_KEY=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
+#       GROQ_API_KEY=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
+#       HF_API_KEY=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
+
+#     env_content_abuse: |
+#       HUGGINGFACEHUB_API_TOKEN=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
+#       LANGCHAIN_API_KEY=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
+#       GROQ_API_KEY=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
+#       HF_API_KEY=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
+#       GROQ_MODEL=llama-3.3-70b-versatile
+
+#     env_paths:
+#       vision: "/home/ubuntu/SIH_models_monorepo/Models/Vision_model/Fastapi_app/.env"
+#       voice: "/home/ubuntu/SIH_models_monorepo/Models/voice_chat_assistant/.env"
+#       abuse: "/home/ubuntu/SIH_models_monorepo/Models/Abuse_detector_model/.env"
+
+#   tasks:
+#     - name: Write .env for Vision model
+#       copy:
+#         dest: "{{ env_paths.vision }}"
+#         content: "{{ env_content_common }}"
+#         mode: "0600"
+#         owner: ubuntu
+#         group: ubuntu
+#       when: inventory_hostname in groups['vision']
+
+#     - name: Write .env for Voice model
+#       copy:
+#         dest: "{{ env_paths.voice }}"
+#         content: "{{ env_content_common }}"
+#         mode: "0600"
+#         owner: ubuntu
+#         group: ubuntu
+#       when: inventory_hostname in groups['voice']
+
+#     - name: Write .env for Abuse model
+#       copy:
+#         dest: "{{ env_paths.abuse }}"
+#         content: "{{ env_content_abuse }}"
+#         mode: "0600"
+#         owner: ubuntu
+#         group: ubuntu
+#       when: inventory_hostname in groups['abuse']
+
+# # =============================================================================
+# # Play 5: Configure & Deploy Vision Model
+# # =============================================================================
+# - name: Configure Vision Model
+#   hosts: vision
+#   become: yes
+#   vars:
+#     app_dir: /home/ubuntu/SIH_models_monorepo/Models/Vision_model/Fastapi_app
+#     venv_dir: "{{ app_dir }}/venv"
+#     service_name: vision-service
+#   tasks:
+#     - name: Create virtualenv
+#       command: python3 -m venv {{ venv_dir }}
+#       args:
+#         creates: "{{ venv_dir }}"
+#       become_user: ubuntu
+
+#     - name: Install requirements
+#       pip:
+#         requirements: "{{ app_dir }}/requirements.txt"
+#         virtualenv: "{{ venv_dir }}"
+#       become_user: ubuntu
+
+#     - name: Install gdown (for model weights)
+#       pip:
+#         name: gdown
+#         virtualenv: "{{ venv_dir }}"
+#       become_user: ubuntu
+
+#     - name: Download model weights
+#       command: "{{ venv_dir }}/bin/gdown {{ item.id }} -O {{ app_dir }}/models/{{ item.file }}"
+#       args:
+#         creates: "{{ app_dir }}/models/{{ item.file }}"
+#       loop:
+#         - { id: "1sk3AL5p9vm3JDXG3lyrYolXCC6iHB7ty", file: "sector_model.pt" }
+#         - { id: "13kKv6_BfRQfLKmsIYpxdAThzZkYjdMvy", file: "infra_model.pt" }
+#         - { id: "1TJk1M18RKvXuitLsh9zJWM8hhRIi3fwu", file: "education_model.pt" }
+#         - { id: "1jjR3nSsRGHNCnDRTXnuhCy8GRDgapOWE", file: "environment_model.pt" }
+#       become_user: ubuntu
+
+#     - name: Setup Systemd Service
+#       copy:
+#         dest: /etc/systemd/system/{{ service_name }}.service
+#         content: |
+#           [Unit]
+#           Description=Vision Model Service
+#           After=network.target
+
+#           [Service]
+#           User=ubuntu
+#           Group=ubuntu
+#           WorkingDirectory=/home/ubuntu/SIH_models_monorepo/Models/Vision_model/
+#           Environment="PATH={{ venv_dir }}/bin:/usr/local/bin:/usr/bin:/bin"
+#           ExecStart={{ venv_dir }}/bin/uvicorn Fastapi_app.main:app --host 0.0.0.0 --port 8002
+#           Restart=always
+
+#           [Install]
+#           WantedBy=multi-user.target
+#       notify: Restart Vision Service
+
+#     - name: Enable and Start Vision Service
+#       systemd:
+#         name: "{{ service_name }}"
+#         enabled: yes
+#         state: started
+#         daemon_reload: yes
+
+#     - name: Configure Nginx
+#       template:
+#         src: templates/vision_nginx.conf.j2
+#         dest: /etc/nginx/sites-available/vision-ani
+#       notify: Reload Nginx
+
+#     - name: Enable Nginx Site
+#       file:
+#         src: /etc/nginx/sites-available/vision-ani
+#         dest: /etc/nginx/sites-enabled/vision-ani
+#         state: link
+#       notify: Reload Nginx
+
+#   handlers:
+#     - name: Restart Vision Service
+#       systemd:
+#         name: "{{ service_name }}"
+#         state: restarted
+#     - name: Reload Nginx
+#       service:
+#         name: nginx
+#         state: reloaded
+
+# # =============================================================================
+# # Play 6: Configure & Deploy Voice Model
+# # =============================================================================
+# - name: Configure Voice Model
+#   hosts: voice
+#   become: yes
+#   vars:
+#     app_dir: /home/ubuntu/SIH_models_monorepo/Models/voice_chat_assistant
+#     venv_dir: "{{ app_dir }}/venv"
+#     service_name: voice-service
+#   tasks:
+#     - name: Create virtualenv
+#       command: python3 -m venv {{ venv_dir }}
+#       args:
+#         creates: "{{ venv_dir }}"
+#       become_user: ubuntu
+
+#     - name: Install requirements
+#       pip:
+#         requirements: "{{ app_dir }}/requirements.txt"
+#         virtualenv: "{{ venv_dir }}"
+#       become_user: ubuntu
+
+#     - name: Create static directory for Voice model
+#       file:
+#         path: "{{ app_dir }}/static"
+#         state: directory
+#         owner: ubuntu
+#         group: ubuntu
+#         mode: "0755"
+
+#     - name: Setup Systemd Service
+#       copy:
+#         dest: /etc/systemd/system/{{ service_name }}.service
+#         content: |
+#           [Unit]
+#           Description=Voice Model Service
+#           After=network.target
+
+#           [Service]
+#           User=ubuntu
+#           Group=ubuntu
+#           WorkingDirectory={{ app_dir }}
+#           Environment="PATH={{ venv_dir }}/bin:/usr/local/bin:/usr/bin:/bin"
+#           ExecStart={{ venv_dir }}/bin/uvicorn main:app --host 0.0.0.0 --port 8001
+#           Restart=always
+
+#           [Install]
+#           WantedBy=multi-user.target
+#       notify: Restart Voice Service
+#       copy:
+#         dest: /etc/systemd/system/{{ service_name }}.service
+#         content: |
+#           [Unit]
+#           Description=Voice Model Service
+#           After=network.target
+
+#           [Service]
+#           User=ubuntu
+#           Group=ubuntu
+#           WorkingDirectory={{ app_dir }}
+#           Environment="PATH={{ venv_dir }}/bin:/usr/local/bin:/usr/bin:/bin"
+#           ExecStart={{ venv_dir }}/bin/uvicorn main:app --host 0.0.0.0 --port 8001
+#           Restart=always
+
+#           [Install]
+#           WantedBy=multi-user.target
+#       notify: Restart Voice Service
+
+#     - name: Enable and Start Voice Service
+#       systemd:
+#         name: "{{ service_name }}"
+#         enabled: yes
+#         state: started
+#         daemon_reload: yes
+
+#     - name: Configure Nginx
+#       template:
+#         src: templates/voice_nginx.conf.j2
+#         dest: /etc/nginx/sites-available/voice
+#       notify: Reload Nginx
+
+#     - name: Enable Nginx Site
+#       file:
+#         src: /etc/nginx/sites-available/voice
+#         dest: /etc/nginx/sites-enabled/voice
+#         state: link
+#       notify: Reload Nginx
+
+#   handlers:
+#     - name: Restart Voice Service
+#       systemd:
+#         name: "{{ service_name }}"
+#         state: restarted
+#     - name: Reload Nginx
+#       service:
+#         name: nginx
+#         state: reloaded
+
+# # =============================================================================
+# # Play 7: Configure & Deploy Abuse Model
+# # =============================================================================
+# - name: Configure Abuse Model
+#   hosts: abuse
+#   become: yes
+#   vars:
+#     app_dir: /home/ubuntu/SIH_models_monorepo/Models/Abuse_detector_model
+#     venv_dir: "{{ app_dir }}/venv"
+#     service_name: abuse-service
+#   tasks:
+#     - name: Create virtualenv
+#       command: python3 -m venv {{ venv_dir }}
+#       args:
+#         creates: "{{ venv_dir }}"
+#       become_user: ubuntu
+
+#     - name: Install requirements
+#       pip:
+#         requirements: "{{ app_dir }}/requirements.txt"
+#         virtualenv: "{{ venv_dir }}"
+#       become_user: ubuntu
+
+#     - name: Setup Systemd Service
+#       copy:
+#         dest: /etc/systemd/system/{{ service_name }}.service
+#         content: |
+#           [Unit]
+#           Description=Abuse Model Service
+#           After=network.target
+
+#           [Service]
+#           User=ubuntu
+#           Group=ubuntu
+#           WorkingDirectory={{ app_dir }}
+#           Environment="PATH={{ venv_dir }}/bin:/usr/local/bin:/usr/bin:/bin"
+#           ExecStart={{ venv_dir }}/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+#           Restart=always
+
+#           [Install]
+#           WantedBy=multi-user.target
+#       notify: Restart Abuse Service
+
+#     - name: Enable and Start Abuse Service
+#       systemd:
+#         name: "{{ service_name }}"
+#         enabled: yes
+#         state: started
+#         daemon_reload: yes
+
+#     - name: Configure Nginx
+#       template:
+#         src: templates/toxic_nginx.conf.j2
+#         dest: /etc/nginx/sites-available/toxic-ani
+#       notify: Reload Nginx
+
+#     - name: Enable Nginx Site
+#       file:
+#         src: /etc/nginx/sites-available/toxic-ani
+#         dest: /etc/nginx/sites-enabled/toxic-ani
+#         state: link
+#       notify: Reload Nginx
+
+#   handlers:
+#     - name: Restart Abuse Service
+#       systemd:
+#         name: "{{ service_name }}"
+#         state: restarted
+#     - name: Reload Nginx
+#       service:
+#         name: nginx
+#         state: reloaded
+
+# # =============================================================================
+# # Play 8: Update Cloudflare DNS Records
+# # =============================================================================
+# - name: Update Cloudflare DNS Records
+#   hosts: localhost
+#   connection: local
+#   gather_facts: no
+#   vars:
+#     cf_zone_id: "20ee3803280daf16297e0e72bc2b4db8"
+#     cf_api_token: "NzqO8A6AU65y7FXyEU-j3dULpPgrjteMrPjX-S4O"
+#     cf_api_base: "https://api.cloudflare.com/client/v4/zones/{{ cf_zone_id }}/dns_records"
+#     dns_records:
+#       - name: "toxic-ani.adityahota.online"
+#         ip: "{{ hostvars[groups['abuse'][0]]['inventory_hostname'] }}"
+#       - name: "vision-ani.adityahota.online"
+#         ip: "{{ hostvars[groups['vision'][0]]['inventory_hostname'] }}"
+#       - name: "voice-ani.adityahota.online"
+#         ip: "{{ hostvars[groups['voice'][0]]['inventory_hostname'] }}"
+#   tasks:
+#     - name: Fetch all DNS records from Cloudflare
+#       uri:
+#         url: "{{ cf_api_base }}?type=A&per_page=100"
+#         method: GET
+#         headers:
+#           Authorization: "Bearer {{ cf_api_token }}"
+#           Content-Type: "application/json"
+#         return_content: yes
+#         status_code: 200
+#       register: cf_dns_list
+
+#     - name: Build record-name → record-id map
+#       set_fact:
+#         cf_record_map: >-
+#           {{
+#             cf_record_map | default({}) | combine({
+#               item.name: item.id
+#             })
+#           }}
+#       loop: "{{ cf_dns_list.json.result }}"
+
+#     - name: Update DNS A record for each subdomain
+#       uri:
+#         url: "{{ cf_api_base }}/{{ cf_record_map[item.name] }}"
+#         method: PATCH
+#         headers:
+#           Authorization: "Bearer {{ cf_api_token }}"
+#           Content-Type: "application/json"
+#         body_format: json
+#         body:
+#           type: "A"
+#           name: "{{ item.name }}"
+#           content: "{{ item.ip }}"
+#           ttl: 1
+#           proxied: true
+#         status_code: 200
+#       loop: "{{ dns_records }}"
+#       loop_control:
+#         label: "{{ item.name }} → {{ item.ip }}"
+
+#     - name: Print DNS update results
+#       debug:
+#         msg:
+#           - "🌐 Cloudflare DNS updated:"
+#           - "  toxic-ani.adityahota.online  → {{ hostvars[groups['abuse'][0]]['inventory_hostname'] }}"
+#           - "  vision-ani.adityahota.online → {{ hostvars[groups['vision'][0]]['inventory_hostname'] }}"
+#           - "  voice-ani.adityahota.online  → {{ hostvars[groups['voice'][0]]['inventory_hostname'] }}"
+
+# # =============================================================================
+# # Play 9: Deployment Summary
+# # =============================================================================
+# - name: Deployment Summary
+#   hosts: localhost
+#   connection: local
+#   gather_facts: no
+#   tasks:
+#     - name: Print deployment summary
+#       debug:
+#         msg:
+#           - "============================================================"
+#           - "           ✅  DEPLOYMENT COMPLETE — ALL 3 EC2s READY       "
+#           - "============================================================"
+#           - ""
+#           - "  EC2 #1 — Vision Model"
+#           - "    IP      : {{ hostvars[groups['vision'][0]]['inventory_hostname'] }}"
+#           - "    Model   : Vision Model  (FastAPI on port 8002)"
+#           - "    Nginx   : http://{{ hostvars[groups['vision'][0]]['inventory_hostname'] }}/vision"
+#           - "    DNS     : vision-ani.adityahota.online"
+#           - ""
+#           - "  EC2 #2 — Voice Model"
+#           - "    IP      : {{ hostvars[groups['voice'][0]]['inventory_hostname'] }}"
+#           - "    Model   : Voice Chat Assistant  (FastAPI on port 8001)"
+#           - "    Nginx   : http://{{ hostvars[groups['voice'][0]]['inventory_hostname'] }}/voice"
+#           - "    DNS     : voice-ani.adityahota.online"
+#           - ""
+#           - "  EC2 #3 — Abuse Detector Model"
+#           - "    IP      : {{ hostvars[groups['abuse'][0]]['inventory_hostname'] }}"
+#           - "    Model   : Abuse Detector  (FastAPI on port 8000)"
+#           - "    Nginx   : http://{{ hostvars[groups['abuse'][0]]['inventory_hostname'] }}/toxic"
+#           - "    DNS     : toxic-ani.adityahota.online"
+#           - ""
+#           - "============================================================"
