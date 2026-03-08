@@ -1,5 +1,9 @@
 from fastapi import FastAPI
 
+from app.utils.s3_model_downloader import download_model
+
+download_model()
+
 from app.api.predict import router as predict_router
 
 
