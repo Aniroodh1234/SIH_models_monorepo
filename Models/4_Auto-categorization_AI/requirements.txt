@@ -1,25 +1,37 @@
-torch
-transformers
-datasets
-accelerate
-spacy
-scikit-learn
-nltk
-pandas
-numpy
-langdetect
-sentencepiece
-sacremoses
-huggingface-hub
-tokenizers
-evaluate
+# torch
+# transformers
+# datasets
+# accelerate
+# spacy
+# scikit-learn
+# nltk
+# pandas
+# numpy
+# langdetect
+# sentencepiece
+# sacremoses
+# huggingface-hub
+# tokenizers
+# evaluate
+# fastapi
+# uvicorn
+# python-dotenv
+# tqdm
+# pydantic
+# requests
+# pyyaml
+# langchain
+# langchain-groq
+# deep_translator
+
+
 fastapi
 uvicorn
-python-dotenv
-tqdm
-pydantic
-requests
-pyyaml
-langchain
+torch
+transformers
+langchain-core
 langchain-groq
-deep_translator
+python-dotenv
+deep-translator
+langdetect
+gdown
