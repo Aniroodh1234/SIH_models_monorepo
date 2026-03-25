@@ -1,8 +1,6 @@
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
-from mangum import Mangum
 
 from app import answer_user_query, collection
 from voice_routes import router as voice_router   
@@ -20,8 +18,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Serve audio response files (voice output)
-app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 # ----- request model -----
@@ -62,5 +58,4 @@ def health():
 def root():
     return {"status": "This is the SwarajDesk RAG-Based Multilingual Chatbot Backend"}
 
-handler = Mangum(app)
 
