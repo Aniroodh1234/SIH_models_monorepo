@@ -80,11 +80,13 @@ def speech_to_text(audio_path: str, ui_language: str = "english") -> str:
         ui_lang = (ui_language or "english").lower()
 
         if ui_lang == "english":
-            google_lang = "en-IN"     # or "en-US" if you prefer
-        elif ui_lang in ("hindi", "hinglish", "odia"):
-            google_lang = "hi-IN"     # Hindi locale, handles Hinglish pretty well
+            google_lang = "en-IN"     # English (India)
+        elif ui_lang == "hinglish":
+            google_lang = "en-IN"     # Hinglish = Hindi words in English letters → en-IN gives Latin script
+        elif ui_lang in ("hindi", "odia"):
+            google_lang = "hi-IN"     # Hindi/Odia → Devanagari transcription
         else:
-            google_lang = "hi-IN"
+            google_lang = "en-IN"
 
         print(f"[DEBUG] Using Google STT language: {google_lang}")
         text = recognizer.recognize_google(audio_data, language=google_lang)
