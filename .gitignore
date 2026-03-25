@@ -19,8 +19,20 @@ ansible/terraform/.terraform.lock.hcl
 # IDE
 .vscode/
 .idea/
+*.txt
+env.json
+ansible.zip
 
 future_bedrock.txt
 TriFusion VLM–ViT–LLM Autonomous St.txt
 struct.txt
-deployment_ec2.txt
+
+# Local run guide
+local_run_guide.md
+
+# Models Ansible deployment
+Models/ansible/.key/
+Models/ansible/terraform/.terraform/
+Models/ansible/terraform/*.tfstate
+Models/ansible/terraform/*.tfstate.backup
+Models/ansible/terraform/.terraform.lock.hcl
