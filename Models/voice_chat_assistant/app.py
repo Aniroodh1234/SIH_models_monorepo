@@ -4,10 +4,19 @@ from dotenv import load_dotenv
 load_dotenv()
 import json
 
-## importing necessay modules and library to build gen AI application
+## importing necessary modules and libraries to build the GenAI application
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_core.output_parsers import StrOutputParser   
+from langchain_core.output_parsers import StrOutputParser
+
+# ---------------------------------------------------------------------------
+# LLM Backend Selection
+# ---------------------------------------------------------------------------
+# [ACTIVE — Groq backend]
 from langchain_groq import ChatGroq
+#
+# [DISABLED — Google Gemini backend; re-enable when API key quota is restored]
+# from langchain_google_genai import ChatGoogleGenerativeAI
+
 from langchain_community.embeddings import HuggingFaceEmbeddings
 import chromadb
 from chromadb import PersistentClient
@@ -17,8 +26,16 @@ import warnings
 warnings.filterwarnings('ignore')
 
 
-## Groq api key and setting hugging face environment
+# ---------------------------------------------------------------------------
+# API Key Configuration
+# ---------------------------------------------------------------------------
+# [ACTIVE] Groq API key — loaded from .env via python-dotenv
 Groq_api_key = os.getenv('GROQ_API_KEY')
+
+# [DISABLED] Gemini API key — restore when switching back to Gemini
+# GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+# HuggingFace token for authenticated model downloads (embedding model)
 client = os.getenv("HUGGINGFACEHUB_API_TOKEN")
 
 ## Langsmith tracking
@@ -249,8 +266,21 @@ Always follow these extra rules:
         },
     ]
 
-    # 5) Call Groq model
+    # -------------------------------------------------------------------------
+    # 5) LLM Inference — Generate the final response
+    # -------------------------------------------------------------------------
+
+    # [ACTIVE] Groq-backed LLM call
     model = ChatGroq(model="openai/gpt-oss-120b", groq_api_key=Groq_api_key)
+
+    # [DISABLED] Google Gemini 2.0 Flash — re-enable when API key quota is restored
+    # model = ChatGoogleGenerativeAI(
+    #     model="gemini-2.0-flash",        # free-tier; fastest Gemini 2.0 variant
+    #     google_api_key=GEMINI_API_KEY,   # injected via .env → os.getenv()
+    #     temperature=0.3,                 # low temperature → factual, deterministic responses
+    # )
+
+    # Invoke the model with the fully assembled message chain
     response = model.invoke(messages)
     final_answer = response.content.strip()
     return final_answer
@@ -267,10 +297,9 @@ Always follow these extra rules:
 
 
 
-## TESTING 
+## TESTING
 
 # Interact in English with user
-
 # reply = answer_user_query(
 #     "How can I reset my password?",
 #     collection,
@@ -280,13 +309,12 @@ Always follow these extra rules:
 
 
 # Interact in hindi with user
-
-reply = answer_user_query(
-    "शिकायत कैसे दर्ज करें",
-    collection,
-    language="hindi"
-)
-print(reply)
+    reply = answer_user_query(
+        "शिकायत कैसे दर्ज करें",
+        collection,
+        language="hindi"
+    )
+    print(reply)
 
 # reply = answer_user_query(
 #     "Password reset karne ka tarika kya hai?",
@@ -299,6 +327,5 @@ print(reply)
 ## FINAL TESTING
 user_question = "How can I reset my password?"
 reply = answer_user_query(user_question, collection)
-
 print("User:", user_question)
 print("Bot :", reply)
