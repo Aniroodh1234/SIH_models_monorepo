@@ -1,4 +1,6 @@
 from fastapi import FastAPI, Request, HTTPException
+from fastapi.staticfiles import StaticFiles
+import os
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -7,6 +9,12 @@ from voice_routes import router as voice_router
 
 
 app = FastAPI(title="Swaraj_chat Backend API")
+
+# Ensure static/voice directory exists before mounting
+os.makedirs(os.path.join("static", "voice"), exist_ok=True)
+
+# Serve static files — /static/voice/<filename>.mp3 is served from this mount
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
 # ----- CORS -----
