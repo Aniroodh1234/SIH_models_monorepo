@@ -4,9 +4,14 @@ import tempfile
 
 from deep_translator import GoogleTranslator
 from speech_to_text import speech_to_text
+from text_to_speech import text_to_speech_file
 from app import answer_user_query, collection   
 
 router = APIRouter()
+
+# Directory where generated voice MP3 files are stored and served from
+VOICE_DIR = os.path.join("static", "voice")
+os.makedirs(VOICE_DIR, exist_ok=True)
 
 
 def _translate_to_english(text: str, source_lang: str) -> str:
@@ -45,6 +50,7 @@ async def voice_chat(file: UploadFile, language: str = Form("english")):
 
         if not user_msg or user_msg.strip() == "":
             return {
+                "audio_url": None,
                 "audio_content_type": None,
                 "reply": None,
                 "transcription": None,
@@ -55,10 +61,15 @@ async def voice_chat(file: UploadFile, language: str = Form("english")):
         #    (ChromaDB content is in English, so English queries match best)
         english_query = _translate_to_english(user_msg, language)
 
-        # 4) Pass ENGLISH query to RAG — but language param ensures LLM responds in target language
+        # 4) Pass ENGLISH query to RAG — language param ensures LLM responds in target language
         bot_reply = answer_user_query(english_query, collection, language)
 
+        # 5) Convert bot reply to speech and save to static/voice/
+        audio_filename = text_to_speech_file(bot_reply, language, VOICE_DIR)
+        audio_url = f"/static/voice/{audio_filename}"
+
         return {
+            "audio_url": audio_url,
             "audio_content_type": "audio/mpeg",
             "reply": bot_reply,
             "transcription": user_msg
@@ -67,6 +78,7 @@ async def voice_chat(file: UploadFile, language: str = Form("english")):
     except Exception as e:
         print(f"Voice chat error: {e}")
         return {
+            "audio_url": None,
             "audio_content_type": None,
             "reply": None,
             "transcription": None,
