@@ -6,5 +6,6 @@ torchvision
 transformers
 python-multipart
 python-dotenv
-groq
+# groq
+google-generativeai
 requests
