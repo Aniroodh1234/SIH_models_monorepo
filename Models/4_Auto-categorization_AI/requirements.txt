@@ -30,7 +30,8 @@ uvicorn
 torch
 transformers
 langchain-core
-langchain-groq
+# langchain-groq
+langchain-google-genai
 python-dotenv
 deep-translator
 langdetect
