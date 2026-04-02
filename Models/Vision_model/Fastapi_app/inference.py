@@ -5,7 +5,13 @@ from io import BytesIO
 
 import torch
 from transformers import ViTForImageClassification
-from groq import Groq
+
+# [DISABLED — Groq SDK]
+# from groq import Groq
+
+# [ACTIVE — Gemini SDK]
+import google.generativeai as genai
+from PIL import Image
 
 from .utils import load_image, get_top_class
 
@@ -14,11 +20,17 @@ from .utils import load_image, get_top_class
 MODEL_DIR = os.path.join(os.path.dirname(__file__), "models")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
-if not GROQ_API_KEY:
-    raise RuntimeError("GROQ_API_KEY environment variable is not set")
+# [DISABLED — Groq API key]
+# GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+# if not GROQ_API_KEY:
+#     raise RuntimeError("GROQ_API_KEY environment variable is not set")
+# groq_client = Groq(api_key=GROQ_API_KEY)
 
-groq_client = Groq(api_key=GROQ_API_KEY)
+# [ACTIVE — Gemini API key]
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+if not GEMINI_API_KEY:
+    raise RuntimeError("GEMINI_API_KEY environment variable is not set")
+genai.configure(api_key=GEMINI_API_KEY)
 
 
 def normalize_key(text: str | None) -> str | None:
@@ -359,15 +371,85 @@ def vit_predict(image_bytes: bytes) -> dict:
     }
 
 
-# ========= VLM (GROQ) — PRIMARY BRAIN =========
+# ========= VLM (GEMINI) — PRIMARY BRAIN =========
 
+# # [DISABLED — Groq VLM call]
+# def call_vlm(image_bytes: bytes) -> dict:
+#     """
+#     Groq Vision (LLaMA) classifier for all 20 sectors.
+#     Returns sector_key, problem_key, is_valid.
+#     """
+#     base64_image = base64.b64encode(image_bytes).decode("utf-8")
+#
+#     sectors_list = sorted(list(ALL_SECTORS))
+#     prompt = f"""
+# You are an image classifier for government civic complaints in India.
+#
+# You MUST output a JSON object with EXACTLY these keys:
+# - "sector": one of {sectors_list + ["invalid"]}
+# - "category": one specific problem key from the allowed list for that sector, or null if invalid
+# - "is_valid": true or false
+#
+# Sectors and their allowed problem category keys are:
+#
+# 1) infrastructure: {SECTOR_CATEGORIES["infrastructure"]}
+# ... (all 20 sectors)
+# 20) transport_safety: {SECTOR_CATEGORIES["transport_safety"]}
+#
+# Rules:
+# - If the image clearly shows one of the civic issues above, choose the correct "sector" and "category" and set "is_valid": true.
+# - If the image is irrelevant (selfie, random object, mountains, animals, unrelated scenes),
+#   set "sector": "invalid", "category": null, "is_valid": false.
+#
+# Return ONLY a JSON object, no explanation.
+# """
+#
+#     completion = groq_client.chat.completions.create(
+#         model="meta-llama/llama-4-scout-17b-16e-instruct",
+#         temperature=0,
+#         max_completion_tokens=256,
+#         response_format={"type": "json_object"},
+#         messages=[
+#             {
+#                 "role": "user",
+#                 "content": [
+#                     {"type": "text", "text": prompt},
+#                     {
+#                         "type": "image_url",
+#                         "image_url": {
+#                             "url": f"data:image/jpeg;base64,{base64_image}",
+#                         },
+#                     },
+#                 ],
+#             }
+#         ],
+#     )
+#
+#     content = completion.choices[0].message.content
+#     if isinstance(content, str):
+#         data = json.loads(content)
+#     else:
+#         data = content
+#
+#     sector_key = normalize_key(data.get("sector", "invalid"))
+#     category_key = data.get("category", None)
+#     if isinstance(category_key, str):
+#         category_key = normalize_key(category_key)
+#     is_valid = bool(data.get("is_valid", False))
+#
+#     return {
+#         "sector_key": sector_key,
+#         "category_key": category_key,
+#         "is_valid": is_valid,
+#     }
+
+
+# [ACTIVE — Gemini VLM call]
 def call_vlm(image_bytes: bytes) -> dict:
     """
-    Groq Vision (LLaMA) classifier for all 20 sectors.
+    Gemini Vision classifier for all 20 sectors.
     Returns sector_key, problem_key, is_valid.
     """
-    base64_image = base64.b64encode(image_bytes).decode("utf-8")
-
     sectors_list = sorted(list(ALL_SECTORS))
     prompt = f"""
 You are an image classifier for government civic complaints in India.
@@ -408,32 +490,57 @@ Rules:
 Return ONLY a JSON object, no explanation.
 """
 
-    completion = groq_client.chat.completions.create(
-        model="meta-llama/llama-4-scout-17b-16e-instruct",
-        temperature=0,
-        max_completion_tokens=256,
-        response_format={"type": "json_object"},
-        messages=[
-            {
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": prompt},
-                    {
-                        "type": "image_url",
-                        "image_url": {
-                            "url": f"data:image/jpeg;base64,{base64_image}",
-                        },
-                    },
-                ],
-            }
-        ],
+    # Disable safety settings that might block civic complaint images
+    from google.generativeai.types import HarmCategory, HarmBlockThreshold
+    safety_settings = {
+        HarmCategory.HARM_CATEGORY_HARASSMENT: HarmBlockThreshold.BLOCK_NONE,
+        HarmCategory.HARM_CATEGORY_HATE_SPEECH: HarmBlockThreshold.BLOCK_NONE,
+        HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: HarmBlockThreshold.BLOCK_NONE,
+        HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: HarmBlockThreshold.BLOCK_NONE,
+    }
+
+    gemini_model = genai.GenerativeModel(
+        "gemini-2.5-pro",
+        generation_config={
+            "temperature": 0,
+            "max_output_tokens": 2048,
+            "response_mime_type": "application/json",
+        },
+        safety_settings=safety_settings
     )
 
-    content = completion.choices[0].message.content
-    if isinstance(content, str):
+    # Load image from bytes for Gemini
+    try:
+        pil_image = Image.open(BytesIO(image_bytes)).convert("RGB")
+    except Exception as e:
+        print(f"Vision Image parse error: {e}")
+        return {"sector_key": "invalid", "category_key": None, "is_valid": False}
+
+    try:
+        # Pass the image properly using the SDK's native PIL support
+        response = gemini_model.generate_content([
+            prompt, 
+            pil_image
+        ])
+        content = response.text.strip()
+    except Exception as e:
+        print(f"Gemini API/Safety Error: {e}")
+        content = '{"sector": "invalid", "category": null, "is_valid": false}'
+    
+    # Robustly extract JSON block (ignores markdown and conversational text)
+    start_idx = content.find('{')
+    end_idx = content.rfind('}')
+    
+    if start_idx != -1 and end_idx != -1 and end_idx >= start_idx:
+        content = content[start_idx:end_idx + 1]
+    
+    content = content.strip()
+
+    try:
         data = json.loads(content)
-    else:
-        data = content
+    except Exception as e:
+        print(f"Vision JSON parse error: {e}. Raw content: {content}")
+        data = {}
 
     sector_key = normalize_key(data.get("sector", "invalid"))
     category_key = data.get("category", None)
