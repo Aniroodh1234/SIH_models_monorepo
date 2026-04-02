@@ -7,7 +7,10 @@ from app.models.schemas import (
     FlaggedSpan,
 )
 from app.services.toxicity_api import get_toxicity_score
-from app.services.llm_extractor import call_groq_llm_for_phrases, build_spans_from_phrases
+# [DISABLED — Groq LLM]
+# from app.services.llm_extractor import call_groq_llm_for_phrases, build_spans_from_phrases
+# [ACTIVE — Gemini LLM]
+from app.services.llm_extractor import call_gemini_llm_for_phrases, build_spans_from_phrases
 
 
 
@@ -103,12 +106,14 @@ def detect_abuse_spans(normalized_text: str) -> List[FlaggedSpan]:
 
     # If HF says low toxicity, still check LLM (for Hindi/Hinglish/Odia)
     if toxicity < TOXICITY_THRESHOLD:
-        parsed = asyncio.run(call_groq_llm_for_phrases(normalized_text))
+        # parsed = asyncio.run(call_groq_llm_for_phrases(normalized_text))
+        parsed = asyncio.run(call_gemini_llm_for_phrases(normalized_text))
         spans = build_spans_from_phrases(normalized_text, parsed)
         return spans
 
     # If HF says high toxicity → use LLM too
-    parsed = asyncio.run(call_groq_llm_for_phrases(normalized_text))
+    # parsed = asyncio.run(call_groq_llm_for_phrases(normalized_text))
+    parsed = asyncio.run(call_gemini_llm_for_phrases(normalized_text))
     spans = build_spans_from_phrases(normalized_text, parsed)
 
     if spans:
