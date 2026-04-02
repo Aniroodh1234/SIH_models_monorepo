@@ -2,8 +2,12 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-## Groq api key and setting hugging face environment
-Groq_api_key = os.getenv('GROQ_API_KEY')
+# [DISABLED — Groq API key]
+# Groq_api_key = os.getenv('GROQ_API_KEY')
+
+# [ACTIVE — Gemini API key]
+GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+
 os.environ['HUGGINGFACEHUB_API_TOKEN']=os.getenv("HUGGINGFACEHUB_API_TOKEN")
 
 ## Langsmith tracking
