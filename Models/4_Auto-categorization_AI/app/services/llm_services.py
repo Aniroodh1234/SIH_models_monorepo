@@ -2,7 +2,12 @@ import os
 import json
 from dotenv import load_dotenv
 
-from langchain_groq import ChatGroq
+# [DISABLED — Groq backend]
+# from langchain_groq import ChatGroq
+
+# [ACTIVE — Gemini backend]
+from langchain_google_genai import ChatGoogleGenerativeAI
+
 from langchain_core.messages import HumanMessage
 
 from app.utils.language_utils import translate_to_english
@@ -11,7 +16,11 @@ from app.services.classifier_service import predict_category
 
 load_dotenv()
 
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+# [DISABLED — Groq API key]
+# GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
+# [ACTIVE — Gemini API key]
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 CONFIDENCE_THRESHOLD = 0.65
 
@@ -165,15 +174,32 @@ def call_llm_classifier(complaint, predicted_category):
 
     messages = [HumanMessage(content=prompt)]
 
-    model = ChatGroq(
-        model="openai/gpt-oss-120b",
-        groq_api_key=GROQ_API_KEY,
+    # [DISABLED — Groq LLM]
+    # model = ChatGroq(
+    #     model="openai/gpt-oss-120b",
+    #     groq_api_key=GROQ_API_KEY,
+    #     temperature=0
+    # )
+
+    # [ACTIVE — Gemini LLM]
+    model = ChatGoogleGenerativeAI(
+        model="gemini-2.5-flash",
+        google_api_key=GEMINI_API_KEY,
         temperature=0
     )
 
     response = model.invoke(messages)
 
     result_text = response.content.strip()
+
+    # Strip markdown formatting that Gemini might add
+    if result_text.startswith("```json"):
+        result_text = result_text[7:]
+    elif result_text.startswith("```"):
+        result_text = result_text[3:]
+    if result_text.endswith("```"):
+        result_text = result_text[:-3]
+    result_text = result_text.strip()
 
     try:
         parsed = json.loads(result_text)
