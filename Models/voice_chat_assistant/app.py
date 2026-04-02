@@ -11,11 +11,11 @@ from langchain_core.output_parsers import StrOutputParser
 # ---------------------------------------------------------------------------
 # LLM Backend Selection
 # ---------------------------------------------------------------------------
-# [ACTIVE — Groq backend]
-from langchain_groq import ChatGroq
+# [DISABLED — Groq backend]
+# from langchain_groq import ChatGroq
 #
-# [DISABLED — Google Gemini backend; re-enable when API key quota is restored]
-# from langchain_google_genai import ChatGoogleGenerativeAI
+# [ACTIVE — Google Gemini backend]
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 from langchain_community.embeddings import HuggingFaceEmbeddings
 import chromadb
@@ -29,11 +29,11 @@ warnings.filterwarnings('ignore')
 # ---------------------------------------------------------------------------
 # API Key Configuration
 # ---------------------------------------------------------------------------
-# [ACTIVE] Groq API key — loaded from .env via python-dotenv
-Groq_api_key = os.getenv('GROQ_API_KEY')
+# [DISABLED] Groq API key
+# Groq_api_key = os.getenv('GROQ_API_KEY')
 
-# [DISABLED] Gemini API key — restore when switching back to Gemini
-# GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+# [ACTIVE] Gemini API key — loaded from .env via python-dotenv
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 # HuggingFace token for authenticated model downloads (embedding model)
 client = os.getenv("HUGGINGFACEHUB_API_TOKEN")
@@ -270,15 +270,15 @@ Always follow these extra rules:
     # 5) LLM Inference — Generate the final response
     # -------------------------------------------------------------------------
 
-    # [ACTIVE] Groq-backed LLM call
-    model = ChatGroq(model="openai/gpt-oss-120b", groq_api_key=Groq_api_key)
+    # [DISABLED] Groq-backed LLM call
+    # model = ChatGroq(model="openai/gpt-oss-120b", groq_api_key=Groq_api_key)
 
-    # [DISABLED] Google Gemini 2.0 Flash — re-enable when API key quota is restored
-    # model = ChatGoogleGenerativeAI(
-    #     model="gemini-2.0-flash",        # free-tier; fastest Gemini 2.0 variant
-    #     google_api_key=GEMINI_API_KEY,   # injected via .env → os.getenv()
-    #     temperature=0.3,                 # low temperature → factual, deterministic responses
-    # )
+    # [ACTIVE] Google Gemini 2.5 Flash
+    model = ChatGoogleGenerativeAI(
+        model="gemini-2.5-flash",
+        google_api_key=GEMINI_API_KEY,
+        temperature=0.3,
+    )
 
     # Invoke the model with the fully assembled message chain
     response = model.invoke(messages)
