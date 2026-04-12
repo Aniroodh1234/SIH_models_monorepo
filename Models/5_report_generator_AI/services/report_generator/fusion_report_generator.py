@@ -5,9 +5,11 @@ the survey report and backend report into a comprehensive analysis.
 
 import json
 from datetime import datetime, timezone
+from typing import Generator
 
 from models.llm.llm_loader import GeminiLLM
 from models.llm.prompt_template import FUSION_REPORT_PROMPT
+from utils.json_parser import extract_json
 from utils.logger import get_logger, log_step
 
 log = get_logger("fusion_report_generator")
@@ -70,6 +72,45 @@ class FusionReportGenerator:
             f"{len(report.get('unified_findings', []))} unified findings"
         )
         return report
+
+    def generate_stream(
+        self,
+        category: str,
+        survey_report: dict,
+        backend_report: dict,
+    ) -> Generator[str, None, None]:
+        """
+        Same as generate() but yields token chunks for streaming.
+
+        Yields:
+            str — raw LLM token chunks.
+            Final yield: sentinel string "__RESULT__:<json>" with parsed report.
+        """
+        survey_json = json.dumps(survey_report, indent=2, ensure_ascii=False)
+        backend_json = json.dumps(backend_report, indent=2, ensure_ascii=False)
+
+        timestamp = datetime.now(timezone.utc).isoformat()
+        prompt = FUSION_REPORT_PROMPT.format(
+            category=category,
+            survey_report=survey_json,
+            backend_report=backend_json,
+            timestamp=timestamp,
+        )
+
+        buffer = ""
+        for chunk in self.llm.generate_json_stream(prompt):
+            buffer += chunk
+            yield chunk
+
+        result = extract_json(buffer)
+        if not result or not isinstance(result, dict):
+            result = self._empty_report(category)
+        else:
+            result.setdefault("report_type", "fusion_report")
+            result.setdefault("category", category)
+            result.setdefault("generated_at", timestamp)
+
+        yield f"__RESULT__:{json.dumps(result, ensure_ascii=False)}"
 
     @staticmethod
     def _empty_report(category: str) -> dict:

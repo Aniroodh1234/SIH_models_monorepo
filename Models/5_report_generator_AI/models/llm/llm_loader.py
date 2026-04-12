@@ -88,10 +88,26 @@ class GeminiLLM:
             safety_settings=self._safety_settings,
         )
 
+        # Streaming config — plain text, NO response_mime_type
+        # (response_mime_type="application/json" is incompatible with stream=True)
+        self._stream_generation_config = genai.types.GenerationConfig(
+            temperature=LLM_TEMPERATURE,
+            max_output_tokens=LLM_MAX_OUTPUT_TOKENS,
+            top_p=LLM_TOP_P,
+            top_k=LLM_TOP_K,
+        )
+
+        # Model for streaming JSON report generation
+        self._stream_model = genai.GenerativeModel(
+            model_name=self.model_name,
+            generation_config=self._stream_generation_config,
+            safety_settings=self._safety_settings,
+        )
+
         log.info(
             f"Gemini LLM ready: model={self.model_name}, "
             f"temp={LLM_TEMPERATURE}, max_tokens={LLM_MAX_OUTPUT_TOKENS}, "
-            f"response_mime_type=application/json"
+            f"response_mime_type=application/json, streaming=enabled"
         )
 
     def generate_json(
@@ -176,6 +192,35 @@ class GeminiLLM:
                     )
 
         return {}
+
+    def generate_json_stream(self, prompt: str):
+        """
+        Stream raw token chunks from Gemini as they are generated.
+
+        Uses the stream model (no response_mime_type) so that
+        stream=True actually delivers incremental chunks.
+
+        Yields:
+            str — successive token chunks (partial JSON text)
+
+        After all chunks are yielded, the caller is responsible for
+        assembling and parsing the full JSON via extract_json().
+        """
+        log.info("Starting streaming JSON generation...")
+        try:
+            stream = self._stream_model.generate_content(prompt, stream=True)
+            for chunk in stream:
+                try:
+                    text = chunk.text
+                    if text:
+                        yield text
+                except (ValueError, AttributeError):
+                    # Skip thought/metadata chunks from thinking model
+                    continue
+        except Exception as e:
+            log.error(f"Streaming generation error: {e}")
+            raise
+        log.info("Streaming JSON generation complete.")
 
     def _extract_response_text(self, response) -> str:
         """

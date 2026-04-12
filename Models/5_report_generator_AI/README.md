@@ -201,6 +201,63 @@ GET /analyze-report
 
 ---
 
+## Streaming (Real-time) Responses — new
+
+This project now supports real-time streaming responses from the LLM and pipeline stages using Server-Sent Events (SSE). Two new endpoints were added in parallel to the existing blocking endpoints so clients can opt-in to receive incremental progress updates and LLM token chunks as the reports are generated.
+
+New endpoints:
+- `GET /analyze-report/stream` — Streaming version of `GET /analyze-report` (SSE). Suitable for browsers (EventSource) and CLI/HTTP clients (curl, requests).
+- `POST /survey-report/stream` — Streaming version of `POST /survey-report` (SSE). Use `fetch()` in browsers or `curl -N` / `requests` in clients.
+
+Key behavior:
+- The streaming endpoints emit structured SSE events with an `event:` type and a JSON `data:` payload. Event types include: `pipeline_start`, `progress`, `token`, `phase_complete`, `complete`, and `error`.
+- `token` events stream raw LLM text chunks as Gemini generates tokens; these are partial JSON text pieces which the client can append to reconstruct the report incrementally.
+- `phase_complete` events contain the fully parsed JSON report for that phase (the server accumulates tokens and runs a robust JSON extractor before emitting this event).
+- The existing non-streaming endpoints (`/survey-report` and `/analyze-report`) remain unchanged.
+
+Protocol (example wire):
+
+```g
+event: progress
+data: {"phase":"retrieval","message":"Retrieving documents...","elapsed_s":1.2}
+
+event: token
+data: {"report":"survey_report","chunk":"{\n  \"report_type\": \"survey_repor"}
+
+event: token
+data: {"report":"survey_report","chunk":"t\",\n  \"category\": \"Health\","}
+
+event: phase_complete
+data: {"phase":"survey_report","elapsed_s":62.0,"report":{...}}
+
+event: complete
+data: {"success":true,"total_time_seconds":143.2}
+```
+
+Implementation notes (developer-facing):
+- `utils/sse_helpers.py`: helper functions `format_sse()` (formats SSE wire strings) and `sync_gen_to_async()` (runs blocking sync generators in a thread pool and bridges to an async generator).
+- `models/llm/llm_loader.py`: new `_stream_model` (GenerationConfig without `response_mime_type`) and `generate_json_stream(prompt)` which calls `generate_content(..., stream=True)` and yields token chunks.
+- `services/report_generator/*_report_generator.py`: new `generate_stream()` methods that yield raw token chunks and finally a `__RESULT__:<json>` sentinel; they reuse the same prompt logic as the blocking `generate()` methods.
+- `pipelines/*_pipeline.py`: new `run_stream()` async generators that emit `progress` events for retrieval/rerank/dedup steps and forward LLM `token` events; they emit a `phase_complete` event with the parsed report dict once the stream completes.
+- `app/routes/*.py`: new routes `GET /analyze-report/stream` and `POST /survey-report/stream` that return `StreamingResponse(..., media_type='text/event-stream')` and set headers to reduce proxy buffering (e.g., `X-Accel-Buffering: no`).
+
+Important caveats & tips:
+- `response_mime_type="application/json"` is incompatible with `stream=True` on the Gemini SDK — the streaming model intentionally omits `response_mime_type` and streams text tokens; the server then reconstructs and parses JSON using the existing `utils/json_parser.py` robust extractor.
+- Gemini "thinking" model parts may include non-text/thought chunks; the streaming reader skips thought metadata and only emits text parts.
+- The `POST /survey-report/stream` endpoint runs the survey, backend, and fusion phases sequentially (to avoid interleaving token streams); the original parallel non-streaming implementation is unchanged.
+- When testing with `curl`, use `-N` to disable buffering. For proxies (nginx), set `proxy_buffering off` or `X-Accel-Buffering: no` header.
+
+Client examples (quick):
+- Browser `EventSource` (GET): `const src = new EventSource('/analyze-report/stream');`
+- Browser `fetch()` (POST): use `fetch('/survey-report/stream', { method:'POST', body: JSON.stringify({category:'Health'}) })` and read `resp.body.getReader()` to stream bytes.
+- Curl (terminal): `curl -N -X POST http://127.0.0.1:8000/survey-report/stream -H "Content-Type: application/json" -d '{"category":"Health"}'`
+
+Testing and rollout:
+- The streaming changes were added behind new `/stream` endpoints to avoid breaking current clients.
+- Verify SSE using `curl -N` and a browser test page that consumes EventSource or a `fetch()` reader for POST.
+
+---
+
 ### 3. `GET /health`
 
 Returns system health and vector store record counts.

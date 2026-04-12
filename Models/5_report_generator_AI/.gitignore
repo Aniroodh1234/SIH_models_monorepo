@@ -1,0 +1,4 @@
+embeddings
+
+# Ignore generated embedding stores and large binary index files
+data/embeddings/
