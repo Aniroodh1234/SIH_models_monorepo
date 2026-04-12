@@ -166,6 +166,34 @@ Generates **3 structured JSON reports** for a given civic category using dual-st
 
 ---
 
+### 3. `GET /metrics`
+
+Returns simple service metrics used by the frontend dashboard. These values are currently placeholder/derived values and can be wired to real monitoring or DB counts later.
+
+**Request:**
+
+```
+GET /metrics
+```
+
+**Response (example):**
+
+```json
+{
+  "docs_in_pipeline": "N/A",
+  "survey": 0,
+  "backend": 0,
+  "formatted": "Docs in pipeline N/A · Survey: 0 · Backend: 0"
+}
+```
+
+Example using `curl`:
+
+```bash
+curl http://127.0.0.1:8000/metrics
+```
+
+
 ### 2. `GET /analyze-report`
 
 **No input required.** Automatically analyzes ALL complaints from the SwarajDesk backend dataset using multi-category MMR retrieval and generates one comprehensive global report.

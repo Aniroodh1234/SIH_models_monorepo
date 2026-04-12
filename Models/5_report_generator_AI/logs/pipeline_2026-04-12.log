@@ -2411,3 +2411,389 @@
 2026-04-12 22:26:13.741 | INFO     | main:lifespan:45 | LLM Model: gemini-2.5-pro
 2026-04-12 22:26:13.742 | INFO     | main:lifespan:46 | Categories: 17
 2026-04-12 22:26:13.742 | INFO     | main:lifespan:47 | ============================================================
+2026-04-12 22:55:24.809 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 22:55:24.812 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 22:55:24.851 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 22:55:24.858 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 22:55:37.535 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 22:55:37.539 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 22:55:37.572 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 22:55:37.575 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 22:55:59.793 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 22:55:59.797 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 22:55:59.832 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 22:55:59.835 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 22:59:20.221 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 22:59:20.225 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 22:59:20.264 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 22:59:20.267 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 22:59:29.544 | INFO     | utils.validator:resolve_category:35 | Category exact match: 'Infrastructure' → 'Infrastructure'
+2026-04-12 22:59:29.544 | INFO     | app.routes.survey_report:stream_survey_report:170 | SSE stream requested for survey-report: 'Infrastructure' → 'Infrastructure'
+2026-04-12 22:59:29.579 | INFO     | models.llm.llm_loader:get_llm:323 | Creating GeminiLLM singleton instance...
+2026-04-12 22:59:29.580 | INFO     | models.llm.llm_loader:__init__:48 | Initializing Gemini LLM: gemini-2.5-pro
+2026-04-12 22:59:29.580 | INFO     | models.llm.llm_loader:__init__:107 | Gemini LLM ready: model=gemini-2.5-pro, temp=0.3, max_tokens=8192, response_mime_type=application/json, streaming=enabled
+2026-04-12 22:59:29.580 | INFO     | app.dependencies:get_embedding_fn:37 | Initializing embedding function...
+2026-04-12 22:59:29.580 | INFO     | config.vector_db_config:get_embedding_function:23 | Loading embedding model: gemini-embedding-001
+2026-04-12 22:59:30.974 | INFO     | config.vector_db_config:get_vector_store:54 | Loading vector store: collection='survey_collection', path='/home/abhas/node/Projects/sih-swarajdesk-2025/SIH_models_monorepo/Models/5_report_generator_AI/data/embeddings'
+2026-04-12 22:59:30.992 | INFO     | services.reranker.reranker:_get_cross_encoder:23 | Loading cross-encoder: cross-encoder/ms-marco-MiniLM-L-6-v2
+2026-04-12 22:59:45.617 | INFO     | services.reranker.reranker:_get_cross_encoder:25 | Cross-encoder loaded.
+2026-04-12 22:59:45.618 | INFO     | app.dependencies:get_survey_pipeline:65 | Survey pipeline initialized
+2026-04-12 22:59:50.059 | INFO     | models.llm.llm_loader:expand_query:305 | Using fallback query: Infrastructure road pothole bridge footpath flyover construction building infrastructure repair
+2026-04-12 22:59:50.060 | INFO     | utils.logger:wrapper:66 | >> START -- Hybrid retrieval
+2026-04-12 22:59:50.061 | INFO     | utils.logger:wrapper:66 | >> START -- Vector retrieval
+2026-04-12 22:59:51.189 | INFO     | services.retriever.vector_retriever:retrieve:65 | Retrieved 40 documents (filter: ['damaged_roads', 'potholes', 'broken_footpath', 'collapsed_bridge', 'damaged_flyover', 'bus_stop_infra', 'boundary_wall_damage', 'damaged_boundary_wall', 'cracked_building_wall', 'signboard_damage'])
+2026-04-12 22:59:51.190 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Vector retrieval (1.13s)
+2026-04-12 22:59:51.190 | INFO     | services.retriever.hybrid_retriever:retrieve:68 | Filtered retrieval: 40 docs (categories: ['damaged_roads', 'potholes', 'broken_footpath']...)
+2026-04-12 22:59:51.190 | INFO     | services.retriever.hybrid_retriever:retrieve:90 | Final result: 20 unique documents for 'Infrastructure' (survey)
+2026-04-12 22:59:51.190 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Hybrid retrieval (1.13s)
+2026-04-12 22:59:51.191 | INFO     | utils.logger:wrapper:66 | >> START -- Removing duplicates
+2026-04-12 22:59:51.193 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Removing duplicates (0.00s)
+2026-04-12 22:59:51.193 | INFO     | utils.logger:wrapper:66 | >> START -- Tagging severity
+2026-04-12 22:59:51.194 | INFO     | services.processor.severity_tagger:tag:64 | Severity distribution: {'high': 5, 'medium': 8, 'low': 7}
+2026-04-12 22:59:51.194 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Tagging severity (0.00s)
+2026-04-12 22:59:51.194 | INFO     | utils.logger:wrapper:66 | >> START -- Reranking documents
+2026-04-12 22:59:51.643 | INFO     | services.reranker.reranker:rerank:84 | Reranked 20 → 10 docs. Top scores: ['-4.992', '-7.359', '-7.390', '-7.922', '-8.279'], Bottom: ['-11.268', '-11.297', '-11.392']
+2026-04-12 22:59:51.643 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Reranking documents (0.45s)
+2026-04-12 22:59:51.645 | INFO     | utils.logger:wrapper:66 | >> START -- Building context string
+2026-04-12 22:59:51.645 | INFO     | utils.logger:wrapper:66 | >> START -- Clustering documents
+2026-04-12 22:59:51.646 | INFO     | services.processor.clusterer:cluster:38 | Clustered 10 docs into 3 groups: {'potholes': 6, 'broken_footpath': 3, 'damaged_flyover': 1}
+2026-04-12 22:59:51.646 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Clustering documents (0.00s)
+2026-04-12 22:59:51.646 | INFO     | services.processor.clusterer:build_context:112 | Context built: 2780 chars from 10 documents
+2026-04-12 22:59:51.646 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Building context string (0.00s)
+2026-04-12 22:59:51.647 | INFO     | models.llm.llm_loader:generate_json_stream:209 | Starting streaming JSON generation...
+2026-04-12 23:00:32.962 | INFO     | models.llm.llm_loader:generate_json_stream:223 | Streaming JSON generation complete.
+2026-04-12 23:00:32.962 | DEBUG    | utils.json_parser:extract_json:48 | Strategy 'direct_parse' failed: Expecting value: line 1 column 1 (char 0)
+2026-04-12 23:00:32.964 | DEBUG    | utils.json_parser:extract_json:48 | Strategy 'code_fence_extraction' failed: Invalid control character at: line 146 column 21 (char 7460)
+2026-04-12 23:00:32.966 | DEBUG    | utils.json_parser:extract_json:48 | Strategy 'brace_extraction' failed: Invalid control character at: line 146 column 21 (char 7460)
+2026-04-12 23:00:32.967 | ERROR    | utils.json_parser:extract_json:51 | All JSON extraction strategies failed
+2026-04-12 23:00:32.968 | INFO     | config.vector_db_config:get_vector_store:54 | Loading vector store: collection='backend_collection', path='/home/abhas/node/Projects/sih-swarajdesk-2025/SIH_models_monorepo/Models/5_report_generator_AI/data/embeddings'
+2026-04-12 23:00:32.987 | INFO     | app.dependencies:get_backend_pipeline:76 | Backend pipeline initialized
+2026-04-12 23:00:36.752 | INFO     | models.llm.llm_loader:expand_query:305 | Using fallback query: Infrastructure road pothole bridge footpath flyover construction building infrastructure repair
+2026-04-12 23:00:36.753 | INFO     | utils.logger:wrapper:66 | >> START -- Hybrid retrieval
+2026-04-12 23:00:36.753 | INFO     | utils.logger:wrapper:66 | >> START -- Vector retrieval
+2026-04-12 23:00:37.878 | INFO     | services.retriever.vector_retriever:retrieve:65 | Retrieved 40 documents (filter: ['Infrastructure'])
+2026-04-12 23:00:37.878 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Vector retrieval (1.12s)
+2026-04-12 23:00:37.879 | INFO     | services.retriever.hybrid_retriever:retrieve:68 | Filtered retrieval: 40 docs (categories: ['Infrastructure']...)
+2026-04-12 23:00:37.879 | DEBUG    | services.retriever.hybrid_retriever:_deduplicate:109 | Dedup: 40 → 4 (removed 36)
+2026-04-12 23:00:37.879 | INFO     | services.retriever.hybrid_retriever:retrieve:90 | Final result: 4 unique documents for 'Infrastructure' (backend)
+2026-04-12 23:00:37.879 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Hybrid retrieval (1.13s)
+2026-04-12 23:00:37.880 | INFO     | utils.logger:wrapper:66 | >> START -- Removing duplicates
+2026-04-12 23:00:37.880 | INFO     | services.processor.duplicator:remove:61 | Removed 2 near-duplicates (4 → 2)
+2026-04-12 23:00:37.880 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Removing duplicates (0.00s)
+2026-04-12 23:00:37.880 | INFO     | utils.logger:wrapper:66 | >> START -- Tagging severity
+2026-04-12 23:00:37.881 | INFO     | services.processor.severity_tagger:tag:64 | Severity distribution: {'high': 2, 'medium': 0, 'low': 0}
+2026-04-12 23:00:37.881 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Tagging severity (0.00s)
+2026-04-12 23:00:37.881 | INFO     | utils.logger:wrapper:66 | >> START -- Reranking documents
+2026-04-12 23:00:37.882 | INFO     | services.reranker.reranker:rerank:63 | Only 2 docs (≤ top_k=10), skipping reranking
+2026-04-12 23:00:37.882 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Reranking documents (0.00s)
+2026-04-12 23:00:37.882 | INFO     | utils.logger:wrapper:66 | >> START -- Building context string
+2026-04-12 23:00:37.882 | INFO     | utils.logger:wrapper:66 | >> START -- Clustering documents
+2026-04-12 23:00:37.883 | INFO     | services.processor.clusterer:cluster:38 | Clustered 2 docs into 1 groups: {'Infrastructure': 2}
+2026-04-12 23:00:37.883 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Clustering documents (0.00s)
+2026-04-12 23:00:37.883 | INFO     | services.processor.clusterer:build_context:112 | Context built: 725 chars from 2 documents
+2026-04-12 23:00:37.883 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Building context string (0.00s)
+2026-04-12 23:00:37.883 | INFO     | models.llm.llm_loader:generate_json_stream:209 | Starting streaming JSON generation...
+2026-04-12 23:01:06.674 | INFO     | models.llm.llm_loader:generate_json_stream:223 | Streaming JSON generation complete.
+2026-04-12 23:01:06.674 | DEBUG    | utils.json_parser:extract_json:48 | Strategy 'direct_parse' failed: Expecting value: line 1 column 1 (char 0)
+2026-04-12 23:01:06.676 | DEBUG    | utils.json_parser:extract_json:45 | JSON extracted via strategy: code_fence_extraction
+2026-04-12 23:01:06.677 | INFO     | app.dependencies:get_fusion_pipeline:86 | Fusion pipeline initialized
+2026-04-12 23:01:06.677 | INFO     | models.llm.llm_loader:generate_json_stream:209 | Starting streaming JSON generation...
+2026-04-12 23:01:41.888 | INFO     | models.llm.llm_loader:generate_json_stream:223 | Streaming JSON generation complete.
+2026-04-12 23:01:41.889 | DEBUG    | utils.json_parser:extract_json:48 | Strategy 'direct_parse' failed: Expecting value: line 1 column 1 (char 0)
+2026-04-12 23:01:41.891 | DEBUG    | utils.json_parser:extract_json:45 | JSON extracted via strategy: code_fence_extraction
+2026-04-12 23:06:54.142 | INFO     | app.routes.analyze_report:stream_analyze_report:87 | SSE stream requested for analyze-report
+2026-04-12 23:06:54.143 | INFO     | app.dependencies:get_analyze_pipeline:97 | Global analyze pipeline initialized
+2026-04-12 23:06:54.143 | INFO     | pipelines.analyze_pipeline:run_stream:115 | Streaming global report across ALL categories...
+2026-04-12 23:06:57.925 | INFO     | models.llm.llm_loader:expand_query:305 | Using fallback query: Infrastructure road pothole bridge footpath flyover construction building infrastructure repair
+2026-04-12 23:06:57.926 | INFO     | utils.logger:wrapper:66 | >> START -- Hybrid retrieval
+2026-04-12 23:06:57.926 | INFO     | utils.logger:wrapper:66 | >> START -- Vector retrieval
+2026-04-12 23:06:58.951 | INFO     | services.retriever.vector_retriever:retrieve:65 | Retrieved 30 documents (filter: ['Infrastructure'])
+2026-04-12 23:06:58.951 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Vector retrieval (1.02s)
+2026-04-12 23:06:58.952 | INFO     | services.retriever.hybrid_retriever:retrieve:68 | Filtered retrieval: 30 docs (categories: ['Infrastructure']...)
+2026-04-12 23:06:58.952 | DEBUG    | services.retriever.hybrid_retriever:_deduplicate:109 | Dedup: 30 → 4 (removed 26)
+2026-04-12 23:06:58.952 | INFO     | services.retriever.hybrid_retriever:retrieve:90 | Final result: 4 unique documents for 'Infrastructure' (backend)
+2026-04-12 23:06:58.952 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Hybrid retrieval (1.03s)
+2026-04-12 23:07:02.810 | INFO     | models.llm.llm_loader:expand_query:305 | Using fallback query: Water Supply & Sanitation water sanitation sewage drain flood waterlogging pipeline contaminated supply
+2026-04-12 23:07:02.811 | INFO     | utils.logger:wrapper:66 | >> START -- Hybrid retrieval
+2026-04-12 23:07:02.812 | INFO     | utils.logger:wrapper:66 | >> START -- Vector retrieval
+2026-04-12 23:07:03.730 | INFO     | services.retriever.vector_retriever:retrieve:65 | Retrieved 30 documents (filter: ['Water Supply & Sanitation'])
+2026-04-12 23:07:03.731 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Vector retrieval (0.92s)
+2026-04-12 23:07:03.731 | INFO     | services.retriever.hybrid_retriever:retrieve:68 | Filtered retrieval: 30 docs (categories: ['Water Supply & Sanitation']...)
+2026-04-12 23:07:03.731 | DEBUG    | services.retriever.hybrid_retriever:_deduplicate:109 | Dedup: 30 → 6 (removed 24)
+2026-04-12 23:07:03.731 | INFO     | services.retriever.hybrid_retriever:retrieve:90 | Final result: 6 unique documents for 'Water Supply & Sanitation' (backend)
+2026-04-12 23:07:03.731 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Hybrid retrieval (0.92s)
+2026-04-12 23:07:06.911 | INFO     | models.llm.llm_loader:expand_query:305 | Using fallback query: Health health hospital disease medical mosquito dengue malaria clinic sanitation
+2026-04-12 23:07:06.912 | INFO     | utils.logger:wrapper:66 | >> START -- Hybrid retrieval
+2026-04-12 23:07:06.912 | INFO     | utils.logger:wrapper:66 | >> START -- Vector retrieval
+2026-04-12 23:07:07.619 | INFO     | services.retriever.vector_retriever:retrieve:65 | Retrieved 30 documents (filter: ['Health'])
+2026-04-12 23:07:07.619 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Vector retrieval (0.71s)
+2026-04-12 23:07:07.619 | INFO     | services.retriever.hybrid_retriever:retrieve:68 | Filtered retrieval: 30 docs (categories: ['Health']...)
+2026-04-12 23:07:07.620 | DEBUG    | services.retriever.hybrid_retriever:_deduplicate:109 | Dedup: 30 → 3 (removed 27)
+2026-04-12 23:07:07.620 | INFO     | services.retriever.hybrid_retriever:retrieve:90 | Final result: 3 unique documents for 'Health' (backend)
+2026-04-12 23:07:07.620 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Hybrid retrieval (0.71s)
+2026-04-12 23:07:11.413 | INFO     | models.llm.llm_loader:expand_query:305 | Using fallback query: Education education school college teacher student literacy classroom enrollment
+2026-04-12 23:07:11.414 | INFO     | utils.logger:wrapper:66 | >> START -- Hybrid retrieval
+2026-04-12 23:07:11.415 | INFO     | utils.logger:wrapper:66 | >> START -- Vector retrieval
+2026-04-12 23:07:12.125 | INFO     | services.retriever.vector_retriever:retrieve:65 | Retrieved 30 documents (filter: ['Education'])
+2026-04-12 23:07:12.126 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Vector retrieval (0.71s)
+2026-04-12 23:07:12.126 | INFO     | services.retriever.hybrid_retriever:retrieve:68 | Filtered retrieval: 30 docs (categories: ['Education']...)
+2026-04-12 23:07:12.126 | DEBUG    | services.retriever.hybrid_retriever:_deduplicate:109 | Dedup: 30 → 5 (removed 25)
+2026-04-12 23:07:12.126 | INFO     | services.retriever.hybrid_retriever:retrieve:90 | Final result: 5 unique documents for 'Education' (backend)
+2026-04-12 23:07:12.126 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Hybrid retrieval (0.71s)
+2026-04-12 23:07:15.811 | INFO     | models.llm.llm_loader:expand_query:305 | Using fallback query: Environment environment pollution air noise waste garbage tree green climate emission
+2026-04-12 23:07:15.812 | INFO     | utils.logger:wrapper:66 | >> START -- Hybrid retrieval
+2026-04-12 23:07:15.813 | INFO     | utils.logger:wrapper:66 | >> START -- Vector retrieval
+2026-04-12 23:07:16.668 | INFO     | services.retriever.vector_retriever:retrieve:65 | Retrieved 30 documents (filter: ['Environment'])
+2026-04-12 23:07:16.668 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Vector retrieval (0.86s)
+2026-04-12 23:07:16.669 | INFO     | services.retriever.hybrid_retriever:retrieve:68 | Filtered retrieval: 30 docs (categories: ['Environment']...)
+2026-04-12 23:07:16.669 | DEBUG    | services.retriever.hybrid_retriever:_deduplicate:109 | Dedup: 30 → 3 (removed 27)
+2026-04-12 23:07:16.669 | INFO     | services.retriever.hybrid_retriever:retrieve:90 | Final result: 3 unique documents for 'Environment' (backend)
+2026-04-12 23:07:16.669 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Hybrid retrieval (0.86s)
+2026-04-12 23:07:20.593 | INFO     | models.llm.llm_loader:expand_query:305 | Using fallback query: Electricity & Power electricity power streetlight outage transformer voltage light electric
+2026-04-12 23:07:20.594 | INFO     | utils.logger:wrapper:66 | >> START -- Hybrid retrieval
+2026-04-12 23:07:20.595 | INFO     | utils.logger:wrapper:66 | >> START -- Vector retrieval
+2026-04-12 23:07:21.348 | INFO     | services.retriever.vector_retriever:retrieve:65 | Retrieved 30 documents (filter: ['Electricity & Power'])
+2026-04-12 23:07:21.349 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Vector retrieval (0.75s)
+2026-04-12 23:07:21.349 | INFO     | services.retriever.hybrid_retriever:retrieve:68 | Filtered retrieval: 30 docs (categories: ['Electricity & Power']...)
+2026-04-12 23:07:21.349 | DEBUG    | services.retriever.hybrid_retriever:_deduplicate:109 | Dedup: 30 → 2 (removed 28)
+2026-04-12 23:07:21.349 | INFO     | services.retriever.hybrid_retriever:retrieve:90 | Final result: 2 unique documents for 'Electricity & Power' (backend)
+2026-04-12 23:07:21.349 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Hybrid retrieval (0.75s)
+2026-04-12 23:07:25.520 | INFO     | models.llm.llm_loader:expand_query:305 | Using fallback query: Municipal Services municipal manhole park toilet civic garbage cleaning sweeping encroachment
+2026-04-12 23:07:25.521 | INFO     | utils.logger:wrapper:66 | >> START -- Hybrid retrieval
+2026-04-12 23:07:25.521 | INFO     | utils.logger:wrapper:66 | >> START -- Vector retrieval
+2026-04-12 23:07:26.268 | INFO     | services.retriever.vector_retriever:retrieve:65 | Retrieved 30 documents (filter: ['Municipal Services'])
+2026-04-12 23:07:26.268 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Vector retrieval (0.75s)
+2026-04-12 23:07:26.269 | INFO     | services.retriever.hybrid_retriever:retrieve:68 | Filtered retrieval: 30 docs (categories: ['Municipal Services']...)
+2026-04-12 23:07:26.269 | DEBUG    | services.retriever.hybrid_retriever:_deduplicate:109 | Dedup: 30 → 2 (removed 28)
+2026-04-12 23:07:26.269 | INFO     | services.retriever.hybrid_retriever:retrieve:90 | Final result: 2 unique documents for 'Municipal Services' (backend)
+2026-04-12 23:07:26.269 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Hybrid retrieval (0.75s)
+2026-04-12 23:07:30.085 | INFO     | models.llm.llm_loader:expand_query:305 | Using fallback query: Transportation transport bus traffic road vehicle parking metro railway commute
+2026-04-12 23:07:30.086 | INFO     | utils.logger:wrapper:66 | >> START -- Hybrid retrieval
+2026-04-12 23:07:30.086 | INFO     | utils.logger:wrapper:66 | >> START -- Vector retrieval
+2026-04-12 23:07:30.749 | INFO     | services.retriever.vector_retriever:retrieve:65 | Retrieved 30 documents (filter: ['Transportation'])
+2026-04-12 23:07:30.749 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Vector retrieval (0.66s)
+2026-04-12 23:07:30.749 | INFO     | services.retriever.hybrid_retriever:retrieve:68 | Filtered retrieval: 30 docs (categories: ['Transportation']...)
+2026-04-12 23:07:30.749 | DEBUG    | services.retriever.hybrid_retriever:_deduplicate:109 | Dedup: 30 → 3 (removed 27)
+2026-04-12 23:07:30.749 | INFO     | services.retriever.hybrid_retriever:retrieve:90 | Final result: 3 unique documents for 'Transportation' (backend)
+2026-04-12 23:07:30.750 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Hybrid retrieval (0.66s)
+2026-04-12 23:07:34.365 | INFO     | models.llm.llm_loader:expand_query:305 | Using fallback query: Police Services police crime safety security stray dog animal theft law
+2026-04-12 23:07:34.366 | INFO     | utils.logger:wrapper:66 | >> START -- Hybrid retrieval
+2026-04-12 23:07:34.366 | INFO     | utils.logger:wrapper:66 | >> START -- Vector retrieval
+2026-04-12 23:07:35.086 | INFO     | services.retriever.vector_retriever:retrieve:65 | Retrieved 30 documents (filter: ['Police Services'])
+2026-04-12 23:07:35.086 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Vector retrieval (0.72s)
+2026-04-12 23:07:35.086 | INFO     | services.retriever.hybrid_retriever:retrieve:68 | Filtered retrieval: 30 docs (categories: ['Police Services']...)
+2026-04-12 23:07:35.087 | DEBUG    | services.retriever.hybrid_retriever:_deduplicate:109 | Dedup: 30 → 2 (removed 28)
+2026-04-12 23:07:35.087 | INFO     | services.retriever.hybrid_retriever:retrieve:90 | Final result: 2 unique documents for 'Police Services' (backend)
+2026-04-12 23:07:35.087 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Hybrid retrieval (0.72s)
+2026-04-12 23:07:39.266 | INFO     | models.llm.llm_loader:expand_query:305 | Using fallback query: Housing & Urban Development housing urban development slum construction building apartment colony
+2026-04-12 23:07:39.267 | INFO     | utils.logger:wrapper:66 | >> START -- Hybrid retrieval
+2026-04-12 23:07:39.267 | INFO     | utils.logger:wrapper:66 | >> START -- Vector retrieval
+2026-04-12 23:07:40.216 | INFO     | services.retriever.vector_retriever:retrieve:65 | Retrieved 30 documents (filter: ['Housing & Urban Development'])
+2026-04-12 23:07:40.217 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Vector retrieval (0.95s)
+2026-04-12 23:07:40.217 | INFO     | services.retriever.hybrid_retriever:retrieve:68 | Filtered retrieval: 30 docs (categories: ['Housing & Urban Development']...)
+2026-04-12 23:07:40.217 | DEBUG    | services.retriever.hybrid_retriever:_deduplicate:109 | Dedup: 30 → 4 (removed 26)
+2026-04-12 23:07:40.218 | INFO     | services.retriever.hybrid_retriever:retrieve:90 | Final result: 4 unique documents for 'Housing & Urban Development' (backend)
+2026-04-12 23:07:40.218 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Hybrid retrieval (0.95s)
+2026-04-12 23:07:44.188 | INFO     | models.llm.llm_loader:expand_query:305 | Using fallback query: Social Welfare social welfare women child pension disability ration scheme benefit
+2026-04-12 23:07:44.194 | INFO     | utils.logger:wrapper:66 | >> START -- Hybrid retrieval
+2026-04-12 23:07:44.195 | INFO     | utils.logger:wrapper:66 | >> START -- Vector retrieval
+2026-04-12 23:07:45.014 | INFO     | services.retriever.vector_retriever:retrieve:65 | Retrieved 30 documents (filter: ['Social Welfare'])
+2026-04-12 23:07:45.015 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Vector retrieval (0.82s)
+2026-04-12 23:07:45.015 | INFO     | services.retriever.hybrid_retriever:retrieve:68 | Filtered retrieval: 30 docs (categories: ['Social Welfare']...)
+2026-04-12 23:07:45.016 | DEBUG    | services.retriever.hybrid_retriever:_deduplicate:109 | Dedup: 30 → 4 (removed 26)
+2026-04-12 23:07:45.016 | INFO     | services.retriever.hybrid_retriever:retrieve:90 | Final result: 4 unique documents for 'Social Welfare' (backend)
+2026-04-12 23:07:45.016 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Hybrid retrieval (0.82s)
+2026-04-12 23:07:48.815 | INFO     | models.llm.llm_loader:expand_query:305 | Using fallback query: Public Grievances grievance complaint public citizen redressal corruption service
+2026-04-12 23:07:48.816 | INFO     | utils.logger:wrapper:66 | >> START -- Hybrid retrieval
+2026-04-12 23:07:48.817 | INFO     | utils.logger:wrapper:66 | >> START -- Vector retrieval
+2026-04-12 23:07:49.646 | INFO     | services.retriever.vector_retriever:retrieve:65 | Retrieved 30 documents (filter: ['Public Grievances'])
+2026-04-12 23:07:49.646 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Vector retrieval (0.83s)
+2026-04-12 23:07:49.646 | INFO     | services.retriever.hybrid_retriever:retrieve:68 | Filtered retrieval: 30 docs (categories: ['Public Grievances']...)
+2026-04-12 23:07:49.648 | DEBUG    | services.retriever.hybrid_retriever:_deduplicate:109 | Dedup: 30 → 2 (removed 28)
+2026-04-12 23:07:49.648 | INFO     | services.retriever.hybrid_retriever:retrieve:90 | Final result: 2 unique documents for 'Public Grievances' (backend)
+2026-04-12 23:07:49.648 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Hybrid retrieval (0.83s)
+2026-04-12 23:07:53.497 | INFO     | models.llm.llm_loader:expand_query:305 | Using fallback query: Revenue revenue tax property land registration mutation assessment
+2026-04-12 23:07:53.500 | INFO     | utils.logger:wrapper:66 | >> START -- Hybrid retrieval
+2026-04-12 23:07:53.501 | INFO     | utils.logger:wrapper:66 | >> START -- Vector retrieval
+2026-04-12 23:07:54.446 | INFO     | services.retriever.vector_retriever:retrieve:65 | Retrieved 30 documents (filter: ['Revenue'])
+2026-04-12 23:07:54.447 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Vector retrieval (0.94s)
+2026-04-12 23:07:54.448 | INFO     | services.retriever.hybrid_retriever:retrieve:68 | Filtered retrieval: 30 docs (categories: ['Revenue']...)
+2026-04-12 23:07:54.448 | DEBUG    | services.retriever.hybrid_retriever:_deduplicate:109 | Dedup: 30 → 3 (removed 27)
+2026-04-12 23:07:54.448 | INFO     | services.retriever.hybrid_retriever:retrieve:90 | Final result: 3 unique documents for 'Revenue' (backend)
+2026-04-12 23:07:54.449 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Hybrid retrieval (0.95s)
+2026-04-12 23:07:58.002 | INFO     | models.llm.llm_loader:expand_query:305 | Using fallback query: Agriculture agriculture farming crop irrigation rural farmer harvest soil
+2026-04-12 23:07:58.005 | INFO     | utils.logger:wrapper:66 | >> START -- Hybrid retrieval
+2026-04-12 23:07:58.006 | INFO     | services.retriever.hybrid_retriever:retrieve:75 | Only 0 filtered docs. Adding unfiltered results...
+2026-04-12 23:07:58.007 | INFO     | utils.logger:wrapper:66 | >> START -- Vector retrieval
+2026-04-12 23:07:58.839 | INFO     | services.retriever.vector_retriever:retrieve:65 | Retrieved 15 documents (filter: None)
+2026-04-12 23:07:58.839 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Vector retrieval (0.83s)
+2026-04-12 23:07:58.840 | DEBUG    | services.retriever.hybrid_retriever:_deduplicate:109 | Dedup: 15 → 1 (removed 14)
+2026-04-12 23:07:58.840 | INFO     | services.retriever.hybrid_retriever:retrieve:90 | Final result: 1 unique documents for 'Agriculture' (backend)
+2026-04-12 23:07:58.840 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Hybrid retrieval (0.83s)
+2026-04-12 23:08:02.610 | INFO     | models.llm.llm_loader:expand_query:305 | Using fallback query: Fire & Emergency fire emergency rescue disaster ambulance hazard
+2026-04-12 23:08:02.611 | INFO     | utils.logger:wrapper:66 | >> START -- Hybrid retrieval
+2026-04-12 23:08:02.611 | INFO     | services.retriever.hybrid_retriever:retrieve:75 | Only 0 filtered docs. Adding unfiltered results...
+2026-04-12 23:08:02.611 | INFO     | utils.logger:wrapper:66 | >> START -- Vector retrieval
+2026-04-12 23:08:03.705 | INFO     | services.retriever.vector_retriever:retrieve:65 | Retrieved 15 documents (filter: None)
+2026-04-12 23:08:03.705 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Vector retrieval (1.09s)
+2026-04-12 23:08:03.706 | DEBUG    | services.retriever.hybrid_retriever:_deduplicate:109 | Dedup: 15 → 2 (removed 13)
+2026-04-12 23:08:03.707 | INFO     | services.retriever.hybrid_retriever:retrieve:90 | Final result: 2 unique documents for 'Fire & Emergency' (backend)
+2026-04-12 23:08:03.708 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Hybrid retrieval (1.10s)
+2026-04-12 23:08:07.361 | INFO     | models.llm.llm_loader:expand_query:305 | Using fallback query: Sports & Youth Affairs sports youth playground stadium athletics recreation
+2026-04-12 23:08:07.363 | INFO     | utils.logger:wrapper:66 | >> START -- Hybrid retrieval
+2026-04-12 23:08:07.364 | INFO     | services.retriever.hybrid_retriever:retrieve:75 | Only 0 filtered docs. Adding unfiltered results...
+2026-04-12 23:08:07.364 | INFO     | utils.logger:wrapper:66 | >> START -- Vector retrieval
+2026-04-12 23:08:08.233 | INFO     | services.retriever.vector_retriever:retrieve:65 | Retrieved 15 documents (filter: None)
+2026-04-12 23:08:08.233 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Vector retrieval (0.87s)
+2026-04-12 23:08:08.235 | DEBUG    | services.retriever.hybrid_retriever:_deduplicate:109 | Dedup: 15 → 2 (removed 13)
+2026-04-12 23:08:08.235 | INFO     | services.retriever.hybrid_retriever:retrieve:90 | Final result: 2 unique documents for 'Sports & Youth Affairs' (backend)
+2026-04-12 23:08:08.235 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Hybrid retrieval (0.87s)
+2026-04-12 23:08:11.506 | INFO     | models.llm.llm_loader:expand_query:305 | Using fallback query: Tourism & Culture tourism culture heritage monument museum festival
+2026-04-12 23:08:11.507 | INFO     | utils.logger:wrapper:66 | >> START -- Hybrid retrieval
+2026-04-12 23:08:11.507 | INFO     | services.retriever.hybrid_retriever:retrieve:75 | Only 0 filtered docs. Adding unfiltered results...
+2026-04-12 23:08:11.507 | INFO     | utils.logger:wrapper:66 | >> START -- Vector retrieval
+2026-04-12 23:08:12.185 | INFO     | services.retriever.vector_retriever:retrieve:65 | Retrieved 15 documents (filter: None)
+2026-04-12 23:08:12.186 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Vector retrieval (0.68s)
+2026-04-12 23:08:12.186 | DEBUG    | services.retriever.hybrid_retriever:_deduplicate:109 | Dedup: 15 → 2 (removed 13)
+2026-04-12 23:08:12.186 | INFO     | services.retriever.hybrid_retriever:retrieve:90 | Final result: 2 unique documents for 'Tourism & Culture' (backend)
+2026-04-12 23:08:12.186 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Hybrid retrieval (0.68s)
+2026-04-12 23:08:12.187 | INFO     | utils.logger:wrapper:66 | >> START -- Removing duplicates
+2026-04-12 23:08:12.191 | INFO     | services.processor.duplicator:remove:61 | Removed 21 near-duplicates (50 → 29)
+2026-04-12 23:08:12.192 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Removing duplicates (0.00s)
+2026-04-12 23:08:12.192 | INFO     | pipelines.analyze_pipeline:run_stream:163 | Total unique diverse documents: 29
+2026-04-12 23:08:12.192 | INFO     | utils.logger:wrapper:66 | >> START -- Tagging severity
+2026-04-12 23:08:12.193 | INFO     | services.processor.severity_tagger:tag:64 | Severity distribution: {'high': 6, 'medium': 2, 'low': 21}
+2026-04-12 23:08:12.193 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Tagging severity (0.00s)
+2026-04-12 23:08:12.194 | INFO     | utils.logger:wrapper:66 | >> START -- Building context string
+2026-04-12 23:08:12.194 | INFO     | utils.logger:wrapper:66 | >> START -- Clustering documents
+2026-04-12 23:08:12.194 | INFO     | services.processor.clusterer:cluster:38 | Clustered 29 docs into 13 groups: {'Infrastructure': 2, 'Water Supply & Sanitation': 4, 'Health': 1, 'Education': 2, 'Environment': 3, 'Electricity & Power': 2, 'Municipal Services': 1, 'Transportation': 2, 'Police Services': 2, 'Housing & Urban Development': 4, 'Social Welfare': 3, 'Public Grievances': 2, 'Revenue': 1}
+2026-04-12 23:08:12.194 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Clustering documents (0.00s)
+2026-04-12 23:08:12.195 | INFO     | services.processor.clusterer:build_context:112 | Context built: 9462 chars from 29 documents
+2026-04-12 23:08:12.195 | SUCCESS  | utils.logger:wrapper:71 | OK DONE  -- Building context string (0.00s)
+2026-04-12 23:08:12.195 | INFO     | models.llm.llm_loader:generate_json_stream:209 | Starting streaming JSON generation...
+2026-04-12 23:08:57.584 | INFO     | models.llm.llm_loader:generate_json_stream:223 | Streaming JSON generation complete.
+2026-04-12 23:08:57.588 | DEBUG    | utils.json_parser:extract_json:48 | Strategy 'direct_parse' failed: Expecting value: line 1 column 1 (char 0)
+2026-04-12 23:08:57.589 | DEBUG    | utils.json_parser:extract_json:45 | JSON extracted via strategy: code_fence_extraction
+2026-04-12 23:08:57.612 | INFO     | main:lifespan:52 | [STOP] Shutting down...
+2026-04-12 23:09:07.045 | INFO     | main:lifespan:31 | ============================================================
+2026-04-12 23:09:07.045 | INFO     | main:lifespan:32 | [START] SwarajDesk AI Report Generator -- Starting Up
+2026-04-12 23:09:07.045 | INFO     | main:lifespan:33 | ============================================================
+2026-04-12 23:09:07.486 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:09:07.755 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:09:07.755 | INFO     | main:lifespan:39 | [OK] survey_collection: 12121 records
+2026-04-12 23:09:07.755 | INFO     | main:lifespan:39 | [OK] backend_collection: 6500 records
+2026-04-12 23:09:07.755 | INFO     | main:lifespan:46 | LLM Model: gemini-2.5-pro
+2026-04-12 23:09:07.756 | INFO     | main:lifespan:47 | Categories: 17
+2026-04-12 23:09:07.756 | INFO     | main:lifespan:48 | ============================================================
+2026-04-12 23:09:07.857 | INFO     | main:lifespan:53 | [STOP] Shutting down...
+2026-04-12 23:09:17.092 | INFO     | main:lifespan:31 | ============================================================
+2026-04-12 23:09:17.092 | INFO     | main:lifespan:32 | [START] SwarajDesk AI Report Generator -- Starting Up
+2026-04-12 23:09:17.093 | INFO     | main:lifespan:33 | ============================================================
+2026-04-12 23:09:17.505 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:09:17.750 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:09:17.750 | INFO     | main:lifespan:39 | [OK] survey_collection: 12121 records
+2026-04-12 23:09:17.750 | INFO     | main:lifespan:39 | [OK] backend_collection: 6500 records
+2026-04-12 23:09:17.751 | INFO     | main:lifespan:46 | LLM Model: gemini-2.5-pro
+2026-04-12 23:09:17.751 | INFO     | main:lifespan:47 | Categories: 17
+2026-04-12 23:09:17.751 | INFO     | main:lifespan:48 | ============================================================
+2026-04-12 23:10:25.666 | INFO     | main:lifespan:53 | [STOP] Shutting down...
+2026-04-12 23:10:35.804 | INFO     | main:lifespan:31 | ============================================================
+2026-04-12 23:10:35.804 | INFO     | main:lifespan:32 | [START] SwarajDesk AI Report Generator -- Starting Up
+2026-04-12 23:10:35.805 | INFO     | main:lifespan:33 | ============================================================
+2026-04-12 23:10:36.241 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:10:36.502 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:10:36.502 | INFO     | main:lifespan:39 | [OK] survey_collection: 12121 records
+2026-04-12 23:10:36.502 | INFO     | main:lifespan:39 | [OK] backend_collection: 6500 records
+2026-04-12 23:10:36.502 | INFO     | main:lifespan:46 | LLM Model: gemini-2.5-pro
+2026-04-12 23:10:36.502 | INFO     | main:lifespan:47 | Categories: 17
+2026-04-12 23:10:36.502 | INFO     | main:lifespan:48 | ============================================================
+2026-04-12 23:16:23.180 | INFO     | main:lifespan:31 | ============================================================
+2026-04-12 23:16:23.181 | INFO     | main:lifespan:32 | [START] SwarajDesk AI Report Generator -- Starting Up
+2026-04-12 23:16:23.181 | INFO     | main:lifespan:33 | ============================================================
+2026-04-12 23:16:23.668 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:16:24.789 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:16:24.789 | INFO     | main:lifespan:39 | [OK] survey_collection: 12121 records
+2026-04-12 23:16:24.789 | INFO     | main:lifespan:39 | [OK] backend_collection: 6500 records
+2026-04-12 23:16:24.789 | INFO     | main:lifespan:46 | LLM Model: gemini-2.5-pro
+2026-04-12 23:16:24.789 | INFO     | main:lifespan:47 | Categories: 17
+2026-04-12 23:16:24.789 | INFO     | main:lifespan:48 | ============================================================
+2026-04-12 23:19:03.353 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:19:03.357 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:20:16.846 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:20:16.850 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:20:42.368 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:20:42.372 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:20:47.788 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:20:47.791 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:20:57.188 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:20:57.190 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:20:59.913 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:20:59.916 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:22:25.382 | INFO     | main:lifespan:53 | [STOP] Shutting down...
+2026-04-12 23:22:34.904 | INFO     | main:lifespan:31 | ============================================================
+2026-04-12 23:22:34.905 | INFO     | main:lifespan:32 | [START] SwarajDesk AI Report Generator -- Starting Up
+2026-04-12 23:22:34.905 | INFO     | main:lifespan:33 | ============================================================
+2026-04-12 23:22:35.330 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:22:35.619 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:22:35.620 | INFO     | main:lifespan:39 | [OK] survey_collection: 12121 records
+2026-04-12 23:22:35.620 | INFO     | main:lifespan:39 | [OK] backend_collection: 6500 records
+2026-04-12 23:22:35.620 | INFO     | main:lifespan:46 | LLM Model: gemini-2.5-pro
+2026-04-12 23:22:35.620 | INFO     | main:lifespan:47 | Categories: 17
+2026-04-12 23:22:35.620 | INFO     | main:lifespan:48 | ============================================================
+2026-04-12 23:22:44.255 | INFO     | main:lifespan:53 | [STOP] Shutting down...
+2026-04-12 23:22:53.867 | INFO     | main:lifespan:31 | ============================================================
+2026-04-12 23:22:53.867 | INFO     | main:lifespan:32 | [START] SwarajDesk AI Report Generator -- Starting Up
+2026-04-12 23:22:53.867 | INFO     | main:lifespan:33 | ============================================================
+2026-04-12 23:22:54.355 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:22:54.600 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:22:54.600 | INFO     | main:lifespan:39 | [OK] survey_collection: 12121 records
+2026-04-12 23:22:54.601 | INFO     | main:lifespan:39 | [OK] backend_collection: 6500 records
+2026-04-12 23:22:54.601 | INFO     | main:lifespan:46 | LLM Model: gemini-2.5-pro
+2026-04-12 23:22:54.601 | INFO     | main:lifespan:47 | Categories: 17
+2026-04-12 23:22:54.601 | INFO     | main:lifespan:48 | ============================================================
+2026-04-12 23:22:54.620 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:22:54.622 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:22:54.649 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:22:54.652 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:27:17.914 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:27:17.917 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:27:17.951 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:27:17.954 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:27:17.990 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:27:17.993 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:27:18.024 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:27:18.029 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:30:57.864 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:30:57.869 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:30:57.923 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:30:57.931 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:31:13.385 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:31:13.387 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:31:13.424 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:31:13.427 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:35:42.415 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:35:42.418 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:35:42.446 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:35:42.450 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:35:42.476 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:35:42.480 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:35:42.508 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:35:42.511 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:37:18.502 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:37:18.505 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:37:18.531 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:37:18.535 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:37:18.559 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:37:18.563 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:37:18.595 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:37:18.597 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:38:40.285 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:38:40.288 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:38:40.312 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:38:40.315 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:38:40.340 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:38:40.343 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:38:40.388 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:38:40.391 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
+2026-04-12 23:42:09.887 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'survey_collection': 12121 records
+2026-04-12 23:42:09.889 | INFO     | config.vector_db_config:verify_collections:92 | Collection 'backend_collection': 6500 records
