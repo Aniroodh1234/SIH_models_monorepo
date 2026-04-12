@@ -1,0 +1,170 @@
+"""
+Robust JSON parser for extracting structured JSON from LLM responses.
+
+Handles common issues:
+- Markdown code fences (```json ... ```)
+- Trailing commas
+- Partial/truncated JSON
+- Mixed text + JSON responses
+"""
+
+import re
+import json
+from typing import Any, Optional
+
+from utils.logger import get_logger
+
+log = get_logger("json_parser")
+
+
+def extract_json(text: str) -> Optional[dict | list]:
+    """
+    Extract JSON from LLM response text using multiple strategies.
+
+    Args:
+        text: Raw LLM response string
+
+    Returns:
+        Parsed JSON object (dict or list), or None if all strategies fail.
+    """
+    if not text or not text.strip():
+        log.warning("Empty text provided to JSON parser")
+        return None
+
+    strategies = [
+        ("direct_parse", _try_direct_parse),
+        ("code_fence_extraction", _try_code_fence),
+        ("brace_extraction", _try_brace_extraction),
+        ("relaxed_parse", _try_relaxed_parse),
+    ]
+
+    for name, strategy in strategies:
+        try:
+            result = strategy(text)
+            if result is not None:
+                log.debug(f"JSON extracted via strategy: {name}")
+                return result
+        except Exception as e:
+            log.debug(f"Strategy '{name}' failed: {e}")
+            continue
+
+    log.error("All JSON extraction strategies failed")
+    return None
+
+
+def safe_extract_json(text: str, default: Any = None) -> Any:
+    """
+    Like extract_json but returns a default value instead of None on failure.
+    """
+    result = extract_json(text)
+    return result if result is not None else (default or {})
+
+
+def _try_direct_parse(text: str) -> Optional[dict | list]:
+    """Strategy 1: Direct JSON parse."""
+    stripped = text.strip()
+    return json.loads(stripped)
+
+
+def _try_code_fence(text: str) -> Optional[dict | list]:
+    """Strategy 2: Extract from markdown code fences."""
+    # Match ```json ... ``` or ``` ... ```
+    patterns = [
+        r"```json\s*\n?(.*?)\n?\s*```",
+        r"```\s*\n?(.*?)\n?\s*```",
+    ]
+
+    for pattern in patterns:
+        match = re.search(pattern, text, re.DOTALL)
+        if match:
+            content = match.group(1).strip()
+            content = _fix_common_issues(content)
+            return json.loads(content)
+
+    return None
+
+
+def _try_brace_extraction(text: str) -> Optional[dict | list]:
+    """Strategy 3: Find the outermost JSON object or array."""
+    # Find first { or [
+    obj_start = text.find("{")
+    arr_start = text.find("[")
+
+    if obj_start == -1 and arr_start == -1:
+        return None
+
+    # Determine which comes first
+    if obj_start == -1:
+        start = arr_start
+        open_char, close_char = "[", "]"
+    elif arr_start == -1:
+        start = obj_start
+        open_char, close_char = "{", "}"
+    else:
+        if obj_start < arr_start:
+            start = obj_start
+            open_char, close_char = "{", "}"
+        else:
+            start = arr_start
+            open_char, close_char = "[", "]"
+
+    # Find matching close
+    depth = 0
+    in_string = False
+    escape_next = False
+
+    for i in range(start, len(text)):
+        ch = text[i]
+
+        if escape_next:
+            escape_next = False
+            continue
+
+        if ch == "\\":
+            escape_next = True
+            continue
+
+        if ch == '"':
+            in_string = not in_string
+            continue
+
+        if in_string:
+            continue
+
+        if ch == open_char:
+            depth += 1
+        elif ch == close_char:
+            depth -= 1
+            if depth == 0:
+                candidate = text[start:i + 1]
+                candidate = _fix_common_issues(candidate)
+                return json.loads(candidate)
+
+    return None
+
+
+def _try_relaxed_parse(text: str) -> Optional[dict | list]:
+    """Strategy 4: Fix common JSON issues then parse."""
+    # Try to find JSON-like content
+    for line_text in [text, text.strip()]:
+        fixed = _fix_common_issues(line_text)
+        try:
+            return json.loads(fixed)
+        except json.JSONDecodeError:
+            continue
+
+    return None
+
+
+def _fix_common_issues(text: str) -> str:
+    """Fix common JSON formatting issues from LLM output."""
+    # Remove trailing commas before } or ]
+    text = re.sub(r",\s*([}\]])", r"\1", text)
+
+    # Remove single-line comments (// ...)
+    text = re.sub(r"//.*?$", "", text, flags=re.MULTILINE)
+
+    # Remove control characters (except \n, \r, \t)
+    text = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f]", "", text)
+
+    return text
