@@ -93,7 +93,7 @@ class SurveyReportPipeline:
             SSE strings of event types: progress, token, phase_complete
         """
         start = time.perf_counter()
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
 
         # Step 1: Query Expansion
         yield format_sse("progress", {

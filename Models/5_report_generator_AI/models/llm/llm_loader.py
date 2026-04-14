@@ -206,9 +206,17 @@ class GeminiLLM:
         After all chunks are yielded, the caller is responsible for
         assembling and parsing the full JSON via extract_json().
         """
+        # Prepend instruction to avoid markdown code fences in streaming mode
+        streaming_instruction = (
+            "IMPORTANT: Output ONLY raw JSON. Do NOT wrap the output in "
+            "markdown code fences (```json or ```). Start directly with { "
+            "and end with }. No extra text before or after the JSON.\n\n"
+        )
+        full_prompt = streaming_instruction + prompt
+
         log.info("Starting streaming JSON generation...")
         try:
-            stream = self._stream_model.generate_content(prompt, stream=True)
+            stream = self._stream_model.generate_content(full_prompt, stream=True)
             for chunk in stream:
                 try:
                     text = chunk.text
@@ -256,7 +264,12 @@ class GeminiLLM:
 
         return ""
 
-    def expand_query(self, category: str, keywords: list) -> str:
+    def expand_query(
+        self,
+        category: str,
+        keywords: list,
+        max_retries: int = 2,
+    ) -> str:
         """
         Expand a category into a rich semantic search query.
 
@@ -266,6 +279,7 @@ class GeminiLLM:
         Args:
             category: User-facing category name
             keywords: Seed keywords for the category
+            max_retries: Number of retry attempts
 
         Returns:
             Expanded query string for vector search
@@ -285,20 +299,30 @@ class GeminiLLM:
             f"Return ONLY the query text, no explanation."
         )
 
-        try:
-            response = self._text_model.generate_content(prompt)
+        for attempt in range(1, max_retries + 1):
+            try:
+                response = self._text_model.generate_content(prompt)
 
-            text = self._extract_response_text(response)
-            if text:
-                expanded = text.strip()
-                log.info(
-                    f"Query expanded for '{category}': "
-                    f"{expanded[:80]}..."
+                text = self._extract_response_text(response)
+                if text:
+                    expanded = text.strip()
+                    log.info(
+                        f"Query expanded for '{category}': "
+                        f"{expanded[:80]}..."
+                    )
+                    return expanded
+                else:
+                    log.warning(
+                        f"Query expansion returned empty response "
+                        f"(attempt {attempt}/{max_retries})"
+                    )
+
+            except Exception as e:
+                log.warning(
+                    f"Query expansion failed (attempt {attempt}/{max_retries}): {e}"
                 )
-                return expanded
-
-        except Exception as e:
-            log.warning(f"Query expansion failed: {e}. Using fallback.")
+                if attempt < max_retries:
+                    time.sleep(1.0)
 
         # Fallback: simple keyword join
         fallback = f"{category} {' '.join(keywords)}"

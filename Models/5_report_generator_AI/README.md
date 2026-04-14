@@ -23,12 +23,12 @@ A production-ready, advanced **RAG-powered (Retrieval-Augmented Generation)** ba
 
 ## Overview
 
-SwarajDesk AI Report Generator powers two independent API endpoints:
+SwarajDesk AI Report Generator powers the following API endpoints:
 
 | Endpoint | Method | Description |
 |---|---|---|
 | `/survey-report` | `POST` | Generates 3 JSON reports (Survey + Backend + Fusion) for a specific civic category |
-| `/analyze-report` | `GET` | Generates one overarching global analysis report across ALL complaint categories — no input needed |
+| `/survey-report/stream` | `POST` | Streaming SSE version of `/survey-report` with real-time progress and token chunks |
 
 The system ingests two datasets:
 - **Survey/NGO Data** (`dataset_fixed.json`) — Field research and NGO reports on civic issues
@@ -50,15 +50,7 @@ FastAPI (main.py)
    │   BackendReportPipeline (Phase 2) ◄── backend_collection   │
    │   FusionReportPipeline (Phase 3)  ◄── Reports 1 + 2        │
    │                                                              │
-   └── GET /analyze-report ──────────────────────────────────── ┘
-           │
-       AnalyzeReportPipeline
-           │
-           ├── Multi-Category Expansion (13 categories)
-           ├── MMR Retrieval (Max Marginal Relevance)
-           ├── Deduplication + Severity Tagging
-           ├── Document Clustering
-           └── Gemini 2.5 Pro JSON Synthesis
+   └── POST /survey-report/stream ───── (SSE streaming version) ┘
 ```
 
 ---
@@ -74,14 +66,12 @@ FastAPI (main.py)
 │
 ├── config/
 │   ├── settings.py                  # Central config (paths, model names, params)
-│   ├── vector_db_config.py          # ChromaDB dual-collection setup
-│   └── llm_config.py                # LLM configuration helpers
+│   └── vector_db_config.py          # ChromaDB dual-collection setup
 │
 ├── app/
 │   ├── dependencies.py              # Singleton pipeline injection
 │   ├── routes/
-│   │   ├── survey_report.py         # POST /survey-report route
-│   │   └── analyze_report.py        # GET /analyze-report route
+│   │   └── survey_report.py         # POST /survey-report + /survey-report/stream
 │   └── schemas/
 │       ├── request_schemas.py       # Pydantic request models
 │       └── response_schema.py       # Pydantic response models
@@ -89,8 +79,7 @@ FastAPI (main.py)
 ├── pipelines/
 │   ├── survey_pipeline.py           # Orchestrates Survey Report (Report 1)
 │   ├── backend_pipeline.py          # Orchestrates Backend Report (Report 2)
-│   ├── fusion_pipeline.py           # Orchestrates Fusion Report (Report 3)
-│   └── analyze_pipeline.py          # Global MMR-based analyze pipeline
+│   └── fusion_pipeline.py           # Orchestrates Fusion Report (Report 3)
 │
 ├── services/
 │   ├── retriever/
@@ -105,13 +94,12 @@ FastAPI (main.py)
 │   └── report_generator/
 │       ├── survey_report_generator.py    # LLM call for Report 1
 │       ├── backend_report_generator.py   # LLM call for Report 2
-│       ├── fusion_report_generator.py    # LLM call for Report 3
-│       └── analyze_report_generator.py   # LLM call for Global Report
+│       └── fusion_report_generator.py    # LLM call for Report 3
 │
 ├── models/
 │   └── llm/
-│       ├── llm_loader.py            # GeminiLLM wrapper (generate_json, expand_query)
-│       └── prompt_template.py       # All 4 LLM prompt templates
+│       ├── llm_loader.py            # GeminiLLM wrapper (generate_json, expand_query, streaming)
+│       └── prompt_template.py       # All 3 LLM prompt templates
 │
 ├── utils/
 │   ├── constants.py                 # VALID_CATEGORIES, CATEGORY_MAP (13 categories)
@@ -166,58 +154,24 @@ Generates **3 structured JSON reports** for a given civic category using dual-st
 
 ---
 
-### 2. `GET /analyze-report`
-
-**No input required.** Automatically analyzes ALL complaints from the SwarajDesk backend dataset using multi-category MMR retrieval and generates one comprehensive global report.
-
-**Request:**
-```
-GET /analyze-report
-```
-*(No body, no parameters — just call the endpoint)*
-
-**Response:**
-```json
-{
-  "report_type": "analyze_report",
-  "category_scope": "All",
-  "generated_at": "2026-04-12T...",
-  "executive_summary": "...",
-  "comprehensive_overview": "...",
-  "total_sample_documents_analyzed": 35,
-  "systemic_issues": [ ... ],
-  "categorical_breakdown": [ ... ],
-  "geographic_macro_analysis": { ... },
-  "root_cause_analysis": [ ... ],
-  "statistics_estimation": { ... },
-  "strategic_recommendations": [ ... ],
-  "pipeline_metadata": {
-    "total_time_seconds": 190.4,
-    "category_scope": "All",
-    "retrieval_strategy": "Multi-Category MMR (Advanced RAG)"
-  }
-}
-```
-
 ---
 
-## Streaming (Real-time) Responses — new
+## Streaming (Real-time) Responses
 
-This project now supports real-time streaming responses from the LLM and pipeline stages using Server-Sent Events (SSE). Two new endpoints were added in parallel to the existing blocking endpoints so clients can opt-in to receive incremental progress updates and LLM token chunks as the reports are generated.
+The project supports real-time streaming responses using Server-Sent Events (SSE). The streaming endpoint runs alongside the blocking endpoint so clients can opt-in to receive incremental progress updates and LLM token chunks as reports are generated.
 
-New endpoints:
-- `GET /analyze-report/stream` — Streaming version of `GET /analyze-report` (SSE). Suitable for browsers (EventSource) and CLI/HTTP clients (curl, requests).
+Streaming endpoint:
 - `POST /survey-report/stream` — Streaming version of `POST /survey-report` (SSE). Use `fetch()` in browsers or `curl -N` / `requests` in clients.
 
 Key behavior:
-- The streaming endpoints emit structured SSE events with an `event:` type and a JSON `data:` payload. Event types include: `pipeline_start`, `progress`, `token`, `phase_complete`, `complete`, and `error`.
+- The streaming endpoint emits structured SSE events with an `event:` type and a JSON `data:` payload. Event types include: `pipeline_start`, `progress`, `token`, `phase_complete`, `complete`, and `error`.
 - `token` events stream raw LLM text chunks as Gemini generates tokens; these are partial JSON text pieces which the client can append to reconstruct the report incrementally.
 - `phase_complete` events contain the fully parsed JSON report for that phase (the server accumulates tokens and runs a robust JSON extractor before emitting this event).
-- The existing non-streaming endpoints (`/survey-report` and `/analyze-report`) remain unchanged.
+- The existing non-streaming endpoint (`/survey-report`) remains unchanged.
 
 Protocol (example wire):
 
-```g
+```
 event: progress
 data: {"phase":"retrieval","message":"Retrieving documents...","elapsed_s":1.2}
 
@@ -236,10 +190,10 @@ data: {"success":true,"total_time_seconds":143.2}
 
 Implementation notes (developer-facing):
 - `utils/sse_helpers.py`: helper functions `format_sse()` (formats SSE wire strings) and `sync_gen_to_async()` (runs blocking sync generators in a thread pool and bridges to an async generator).
-- `models/llm/llm_loader.py`: new `_stream_model` (GenerationConfig without `response_mime_type`) and `generate_json_stream(prompt)` which calls `generate_content(..., stream=True)` and yields token chunks.
-- `services/report_generator/*_report_generator.py`: new `generate_stream()` methods that yield raw token chunks and finally a `__RESULT__:<json>` sentinel; they reuse the same prompt logic as the blocking `generate()` methods.
-- `pipelines/*_pipeline.py`: new `run_stream()` async generators that emit `progress` events for retrieval/rerank/dedup steps and forward LLM `token` events; they emit a `phase_complete` event with the parsed report dict once the stream completes.
-- `app/routes/*.py`: new routes `GET /analyze-report/stream` and `POST /survey-report/stream` that return `StreamingResponse(..., media_type='text/event-stream')` and set headers to reduce proxy buffering (e.g., `X-Accel-Buffering: no`).
+- `models/llm/llm_loader.py`: `_stream_model` (GenerationConfig without `response_mime_type`) and `generate_json_stream(prompt)` which calls `generate_content(..., stream=True)` and yields token chunks.
+- `services/report_generator/*_report_generator.py`: `generate_stream()` methods that yield raw token chunks and finally a `__RESULT__:<json>` sentinel; they reuse the same prompt logic as the blocking `generate()` methods.
+- `pipelines/*_pipeline.py`: `run_stream()` async generators that emit `progress` events for retrieval/rerank/dedup steps and forward LLM `token` events; they emit a `phase_complete` event with the parsed report dict once the stream completes.
+- `app/routes/survey_report.py`: `POST /survey-report/stream` route that returns `StreamingResponse(..., media_type='text/event-stream')` and sets headers to reduce proxy buffering (e.g., `X-Accel-Buffering: no`).
 
 Important caveats & tips:
 - `response_mime_type="application/json"` is incompatible with `stream=True` on the Gemini SDK — the streaming model intentionally omits `response_mime_type` and streams text tokens; the server then reconstructs and parses JSON using the existing `utils/json_parser.py` robust extractor.
@@ -248,13 +202,12 @@ Important caveats & tips:
 - When testing with `curl`, use `-N` to disable buffering. For proxies (nginx), set `proxy_buffering off` or `X-Accel-Buffering: no` header.
 
 Client examples (quick):
-- Browser `EventSource` (GET): `const src = new EventSource('/analyze-report/stream');`
-- Browser `fetch()` (POST): use `fetch('/survey-report/stream', { method:'POST', body: JSON.stringify({category:'Health'}) })` and read `resp.body.getReader()` to stream bytes.
+- Browser `fetch()` (POST): use `fetch('/survey-report/stream', { method:'POST', body: JSON.stringify({category:'Health'}), headers: {'Content-Type': 'application/json'} })` and read `resp.body.getReader()` to stream bytes.
 - Curl (terminal): `curl -N -X POST http://127.0.0.1:8000/survey-report/stream -H "Content-Type: application/json" -d '{"category":"Health"}'`
 
 Testing and rollout:
-- The streaming changes were added behind new `/stream` endpoints to avoid breaking current clients.
-- Verify SSE using `curl -N` and a browser test page that consumes EventSource or a `fetch()` reader for POST.
+- The streaming changes are available via the `/stream` endpoint to avoid breaking current clients.
+- Verify SSE using `curl -N` and a browser test page that consumes a `fetch()` reader for POST.
 
 ---
 
@@ -390,8 +343,10 @@ curl -X POST http://127.0.0.1:8000/survey-report \
   -H "Content-Type: application/json" \
   -d '{"category": "Water Supply & Sanitation"}'
 
-# Analyze Report (GET, no body needed)
-curl http://127.0.0.1:8000/analyze-report
+# Streaming Survey Report (SSE)
+curl -N -X POST http://127.0.0.1:8000/survey-report/stream \
+  -H "Content-Type: application/json" \
+  -d '{"category": "Health"}'
 ```
 
 ### Using Python requests
@@ -404,10 +359,6 @@ resp = requests.post(
     "http://127.0.0.1:8000/survey-report",
     json={"category": "Infrastructure"}
 )
-print(resp.json())
-
-# Global Analyze Report (no input)
-resp = requests.get("http://127.0.0.1:8000/analyze-report")
 print(resp.json())
 ```
 
@@ -431,23 +382,6 @@ print(resp.json())
 Pipelines 1 (Survey) and 2 (Backend) run **in parallel** using `asyncio`. Fusion (Pipeline 3) runs after both complete.
 
 ---
-
-### `/analyze-report` — Advanced Multi-Category MMR
-
-```
-1. Iterate 13 categories → For each, LLM generates a targeted semantic query
-2. MMR per category      → Fetch 15 diverse docs per category (~195 total fetched)
-3. Global Deduplication  → Reduces to ~35 uniquely varied complaint samples
-4. Severity Tagging      → Tags all unique docs
-5. Context Clustering    → Organizes by all 13 category keys for rich context
-6. Gemini Synthesis      → Generates overarching systemic-level global JSON report
-```
-
-This Advanced RAG strategy ensures:
-- Full **dataset coverage** across all categories
-- **Zero token waste** — only ~35 optimally diverse docs sent to LLM
-- **High accuracy** — MMR prevents redundancy biases
-- **Cost-effective** — Minimal Gemini API calls for maximum insight
 
 ---
 

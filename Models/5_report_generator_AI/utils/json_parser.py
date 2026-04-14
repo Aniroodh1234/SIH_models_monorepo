@@ -164,7 +164,54 @@ def _fix_common_issues(text: str) -> str:
     # Remove single-line comments (// ...)
     text = re.sub(r"//.*?$", "", text, flags=re.MULTILINE)
 
-    # Remove control characters (except \n, \r, \t)
+    # Remove non-printable control characters (except \n, \r, \t)
     text = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f]", "", text)
 
+    # Escape raw control characters inside JSON string values.
+    # json.loads() rejects raw \n, \r, \t inside strings unless escaped.
+    text = _escape_control_chars_in_strings(text)
+
     return text
+
+
+def _escape_control_chars_in_strings(text: str) -> str:
+    """
+    Escape raw control characters (newline, tab, CR) that appear inside
+    JSON string values.  Characters outside strings are left untouched
+    so the structural formatting (pretty-printed JSON) is preserved.
+    """
+    result = []
+    in_string = False
+    escape_next = False
+
+    for ch in text:
+        if escape_next:
+            result.append(ch)
+            escape_next = False
+            continue
+
+        if ch == '\\' and in_string:
+            result.append(ch)
+            escape_next = True
+            continue
+
+        if ch == '"':
+            in_string = not in_string
+            result.append(ch)
+            continue
+
+        # Only escape control chars when we're inside a JSON string value
+        if in_string:
+            if ch == '\n':
+                result.append('\\n')
+                continue
+            elif ch == '\r':
+                result.append('\\r')
+                continue
+            elif ch == '\t':
+                result.append('\\t')
+                continue
+
+        result.append(ch)
+
+    return ''.join(result)

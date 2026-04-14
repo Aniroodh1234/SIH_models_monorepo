@@ -1,4 +1,17 @@
-embeddings
-
-# Ignore generated embedding stores and large binary index files
+# Embedding stores (large binary files)
 data/embeddings/
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# Logs (auto-generated at runtime)
+logs/
+
+# Environment
+.env
+
+# IDE
+.vscode/
+.idea/

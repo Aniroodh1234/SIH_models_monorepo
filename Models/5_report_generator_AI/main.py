@@ -3,7 +3,6 @@ SwarajDesk AI Report Generator — FastAPI Application
 
 Endpoints:
   POST /survey-report   → Generates 3 JSON reports (survey + backend + fusion)
-  GET  /analyze-report  → Global comprehensive complaint analysis (no input needed)
   GET  /health          → Health check
   GET  /categories      → List valid categories
 """
@@ -14,7 +13,6 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.routes.survey_report import router as survey_router
-from app.routes.analyze_report import router as analyze_router
 from config.vector_db_config import verify_collections
 from config.settings import LLM_MODEL_NAME
 from utils.constants import VALID_CATEGORIES
@@ -75,7 +73,6 @@ app.add_middleware(
 
 # ── Register Routers ─────────────────────────────────────────────
 app.include_router(survey_router)
-app.include_router(analyze_router)
 
 
 # ── Utility Endpoints ────────────────────────────────────────────
@@ -116,7 +113,6 @@ async def root():
         "version": "1.0.0",
         "endpoints": {
             "POST /survey-report": "Generate 3 JSON reports for a category",
-            "GET /analyze-report": "Generate overarching global complaint analysis (no input needed)",
             "GET /health": "System health check",
             "GET /categories": "List valid categories",
         },

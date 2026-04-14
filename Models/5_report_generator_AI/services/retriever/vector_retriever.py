@@ -53,14 +53,28 @@ class VectorRetriever:
                 }
 
         try:
-            # Use MMR for diverse results
-            docs = self.vector_store.max_marginal_relevance_search(
-                query=query,
-                k=top_k,
-                fetch_k=MMR_FETCH_K,
-                lambda_mult=MMR_LAMBDA_MULT,
-                filter=where_filter,
-            )
+            # Use MMR for diverse results — retry once on transient errors
+            docs = None
+            for _attempt in range(2):
+                try:
+                    docs = self.vector_store.max_marginal_relevance_search(
+                        query=query,
+                        k=top_k,
+                        fetch_k=MMR_FETCH_K,
+                        lambda_mult=MMR_LAMBDA_MULT,
+                        filter=where_filter,
+                    )
+                    break
+                except Exception as retry_err:
+                    if _attempt == 0:
+                        import time
+                        log.warning(
+                            f"MMR retrieval attempt 1 failed: {retry_err}. "
+                            f"Retrying in 1s..."
+                        )
+                        time.sleep(1.0)
+                    else:
+                        raise retry_err
 
             log.info(
                 f"Retrieved {len(docs)} documents "

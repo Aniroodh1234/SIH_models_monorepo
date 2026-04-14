@@ -89,7 +89,7 @@ class BackendReportPipeline:
         Streaming version of run(). Yields SSE-formatted strings.
         """
         start = time.perf_counter()
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
 
         # Step 1: Query Expansion
         yield format_sse("progress", {

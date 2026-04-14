@@ -5,8 +5,6 @@ a HuggingFace cross-encoder model for precision.
 
 from typing import List
 from langchain_core.documents import Document
-from sentence_transformers import CrossEncoder
-
 from config.settings import RERANKER_MODEL_NAME, RERANKER_TOP_K
 from utils.logger import get_logger, log_step
 
@@ -16,11 +14,12 @@ log = get_logger("reranker")
 _cross_encoder = None
 
 
-def _get_cross_encoder() -> CrossEncoder:
+def _get_cross_encoder():
     """Lazy-load the cross-encoder model (singleton)."""
     global _cross_encoder
     if _cross_encoder is None:
         log.info(f"Loading cross-encoder: {RERANKER_MODEL_NAME}")
+        from sentence_transformers import CrossEncoder
         _cross_encoder = CrossEncoder(RERANKER_MODEL_NAME)
         log.info("Cross-encoder loaded.")
     return _cross_encoder

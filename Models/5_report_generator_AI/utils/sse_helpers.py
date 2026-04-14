@@ -46,7 +46,7 @@ async def sync_gen_to_async(sync_gen: Generator) -> AsyncGenerator:
         Items produced by the synchronous generator, one at a time
     """
     queue: asyncio.Queue = asyncio.Queue()
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     SENTINEL = object()
 
     def _producer():
