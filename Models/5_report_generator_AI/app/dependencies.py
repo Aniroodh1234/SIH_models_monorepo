@@ -1,7 +1,3 @@
-"""
-FastAPI dependency injection — provides shared pipeline instances.
-"""
-
 from functools import lru_cache
 
 from langchain_chroma import Chroma
@@ -19,7 +15,7 @@ from utils.logger import get_logger
 
 log = get_logger("dependencies")
 
-# ── Cached instances ──────────────────────────────────────────────
+
 _embedding_fn = None
 _survey_store = None
 _backend_store = None

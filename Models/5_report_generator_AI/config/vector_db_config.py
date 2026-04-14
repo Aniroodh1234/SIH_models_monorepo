@@ -1,7 +1,3 @@
-"""
-ChromaDB vector database configuration — dual collection setup.
-"""
-
 import chromadb
 from langchain_chroma import Chroma
 

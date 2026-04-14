@@ -1,8 +1,3 @@
-"""
-Fusion Report Generator — generates JSON Report 3 by fusing
-the survey report and backend report into a comprehensive analysis.
-"""
-
 import json
 from datetime import datetime, timezone
 from typing import Generator

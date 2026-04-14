@@ -1,7 +1,3 @@
-"""
-Backend Report Generator — generates JSON Report 2 from SwarajDesk data.
-"""
-
 import json
 from datetime import datetime, timezone
 from typing import List, Generator

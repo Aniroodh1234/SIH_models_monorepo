@@ -1,6 +1,4 @@
-"""
-Structured logging with Loguru for pipeline tracing.
-"""
+
 
 import sys
 import io

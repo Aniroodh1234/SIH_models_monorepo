@@ -29,6 +29,7 @@ async def get_metrics():
         f"Docs in pipeline N/A · Survey: {survey_count} · Backend: {backend_count}"
     )
 
+
     return {
         "docs_in_pipeline": "N/A",
         "survey": survey_count,

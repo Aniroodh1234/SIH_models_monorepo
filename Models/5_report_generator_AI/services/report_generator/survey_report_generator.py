@@ -1,7 +1,3 @@
-"""
-Survey Report Generator — generates JSON Report 1 from survey/NGO data.
-"""
-
 import json
 from datetime import datetime, timezone
 from typing import List, Generator

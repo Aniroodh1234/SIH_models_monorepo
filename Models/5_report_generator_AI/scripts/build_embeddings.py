@@ -1,10 +1,3 @@
-"""
-Build Embeddings Script — Creates dual ChromaDB collections.
-
-Memory-optimized: uses D: drive for all caches,
-loads embedding model once, small batch sizes.
-"""
-
 import sys
 import os
 import gc

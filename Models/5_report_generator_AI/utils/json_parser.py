@@ -1,13 +1,3 @@
-"""
-Robust JSON parser for extracting structured JSON from LLM responses.
-
-Handles common issues:
-- Markdown code fences (```json ... ```)
-- Trailing commas
-- Partial/truncated JSON
-- Mixed text + JSON responses
-"""
-
 import re
 import json
 from typing import Any, Optional

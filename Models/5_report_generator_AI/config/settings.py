@@ -1,7 +1,3 @@
-"""
-Central settings loaded from .env — single source of truth.
-"""
-
 import os
 from pathlib import Path
 from dotenv import load_dotenv

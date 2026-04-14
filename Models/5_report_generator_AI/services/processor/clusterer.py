@@ -1,8 +1,3 @@
-"""
-Document Clusterer — groups retrieved documents by sub-themes
-to provide structured input for report generation.
-"""
-
 from typing import List, Dict
 from collections import defaultdict
 from langchain_core.documents import Document

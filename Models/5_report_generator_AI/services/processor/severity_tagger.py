@@ -1,8 +1,3 @@
-"""
-Severity Tagger — tags documents with severity levels using
-keyword-based heuristics.
-"""
-
 from typing import List
 from langchain_core.documents import Document
 

@@ -1,9 +1,3 @@
-"""
-Survey Report Route — POST /survey-report
-
-Generates 3 JSON reports (survey, backend, fusion) for a given category.
-"""
-
 import json
 import time
 import asyncio

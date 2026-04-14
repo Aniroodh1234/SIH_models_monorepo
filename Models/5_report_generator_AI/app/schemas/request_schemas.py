@@ -1,6 +1,3 @@
-"""
-Pydantic request schemas for the API.
-"""
 
 from pydantic import BaseModel, Field
 from typing import Optional

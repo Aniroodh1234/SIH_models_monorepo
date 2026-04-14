@@ -1,7 +1,3 @@
-"""
-Validators for input data and report output.
-"""
-
 from typing import Optional
 from utils.constants import VALID_CATEGORIES, CATEGORY_MAP, get_all_keywords
 from utils.logger import get_logger

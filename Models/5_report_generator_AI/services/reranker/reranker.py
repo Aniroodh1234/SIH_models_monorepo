@@ -1,8 +1,3 @@
-"""
-Cross-Encoder Reranker — reranks retrieved documents using
-a HuggingFace cross-encoder model for precision.
-"""
-
 from typing import List
 from langchain_core.documents import Document
 from config.settings import RERANKER_MODEL_NAME, RERANKER_TOP_K

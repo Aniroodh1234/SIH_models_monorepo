@@ -1,10 +1,3 @@
-"""
-Constants and category mapping for the Report Generator.
-
-Maps user-facing categories to dataset-specific category names
-to ensure correct retrieval from both vector stores.
-"""
-
 # ── Vector Store Collection Names ─────────────────────────────────
 SURVEY_COLLECTION = "survey_collection"
 BACKEND_COLLECTION = "backend_collection"

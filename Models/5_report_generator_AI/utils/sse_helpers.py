@@ -1,10 +1,4 @@
-"""
-SSE (Server-Sent Events) helpers for streaming responses.
 
-Provides:
-  - format_sse()         : Format a Python dict into an SSE wire-format string
-  - sync_gen_to_async()  : Bridge a blocking synchronous generator into an async generator
-"""
 
 import json
 import asyncio

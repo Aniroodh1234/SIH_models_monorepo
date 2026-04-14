@@ -1,7 +1,4 @@
-"""
-Hybrid Retriever — combines category-aware retrieval with query expansion
-and multi-strategy search for maximum recall and precision.
-"""
+
 
 from typing import List, Optional
 

@@ -1,8 +1,3 @@
-"""
-Duplicate Remover — removes near-duplicate documents using
-content fingerprinting and Jaccard similarity.
-"""
-
 from typing import List
 from langchain_core.documents import Document
 
