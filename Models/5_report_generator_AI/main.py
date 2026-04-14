@@ -13,7 +13,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.routes.survey_report import router as survey_router
-from app.routes.analyze_report import router as analyze_router
+# from app.routes.analyze_report import router as analyze_router  # DEPRECATED — removed endpoint
 from app.routes.metrics import router as metrics_router
 from config.vector_db_config import verify_collections
 from config.settings import LLM_MODEL_NAME
@@ -75,7 +75,7 @@ app.add_middleware(
 
 # ── Register Routers ─────────────────────────────────────────────
 app.include_router(survey_router)
-app.include_router(analyze_router)
+# app.include_router(analyze_router)  # DEPRECATED — removed endpoint
 app.include_router(metrics_router)
 
 

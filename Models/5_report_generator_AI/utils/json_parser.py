@@ -26,6 +26,7 @@ def extract_json(text: str) -> Optional[dict | list]:
         ("code_fence_extraction", _try_code_fence),
         ("brace_extraction", _try_brace_extraction),
         ("relaxed_parse", _try_relaxed_parse),
+        ("truncated_repair", _try_truncated_repair),
     ]
 
     for name, strategy in strategies:
@@ -205,3 +206,97 @@ def _escape_control_chars_in_strings(text: str) -> str:
         result.append(ch)
 
     return ''.join(result)
+
+
+def _try_truncated_repair(text: str) -> Optional[dict | list]:
+    """
+    Strategy 5: Repair truncated JSON from LLM output that was cut off
+    due to max_output_tokens limit.
+
+    When the model hits the token limit, the JSON output is truncated
+    mid-string or mid-object. This strategy:
+    1. Finds the start of the JSON
+    2. Closes any open string
+    3. Closes all open arrays and objects in the correct order
+    4. Parses the repaired JSON
+    """
+    # Find the first { or [
+    start = -1
+    for i, ch in enumerate(text):
+        if ch in ('{', '['):
+            start = i
+            break
+
+    if start == -1:
+        return None
+
+    json_text = text[start:]
+    json_text = _fix_common_issues(json_text)
+
+    # Track state: are we inside a string? what brackets are open?
+    in_string = False
+    escape_next = False
+    stack = []  # stack of open brackets: '{' or '['
+
+    for ch in json_text:
+        if escape_next:
+            escape_next = False
+            continue
+
+        if ch == '\\' and in_string:
+            escape_next = True
+            continue
+
+        if ch == '"':
+            in_string = not in_string
+            continue
+
+        if in_string:
+            continue
+
+        if ch == '{':
+            stack.append('{')
+        elif ch == '[':
+            stack.append('[')
+        elif ch == '}':
+            if stack and stack[-1] == '{':
+                stack.pop()
+        elif ch == ']':
+            if stack and stack[-1] == '[':
+                stack.pop()
+
+    if not stack:
+        # JSON is already balanced — this strategy won't help
+        return None
+
+    # The JSON is truncated. Repair it:
+    repaired = json_text
+
+    # If we're inside an open string, close it
+    if in_string:
+        repaired += '"'
+
+    # Remove any trailing partial key-value (e.g., "key": "partial)
+    # by trimming back to the last complete value
+    repaired = re.sub(r',\s*"[^"]*"\s*:\s*$', '', repaired)
+    repaired = re.sub(r',\s*$', '', repaired)
+
+    # Close all open brackets in reverse order
+    for bracket in reversed(stack):
+        if bracket == '{':
+            repaired += '}'
+        elif bracket == '[':
+            repaired += ']'
+
+    # Final cleanup: remove trailing commas before closing brackets
+    repaired = re.sub(r',\s*([}\]])', r'\1', repaired)
+
+    try:
+        result = json.loads(repaired)
+        log.warning(
+            f"Repaired truncated JSON: closed {len(stack)} open bracket(s). "
+            f"Some data at the end may be incomplete."
+        )
+        return result
+    except json.JSONDecodeError:
+        return None

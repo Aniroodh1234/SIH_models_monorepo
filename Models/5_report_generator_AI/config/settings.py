@@ -20,7 +20,8 @@ HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACE_API_KEY", "")
 LANGCHAIN_API_KEY = os.getenv("LANGCHAIN_API_KEY", "")
 
 # ── Model Config ──────────────────────────────────────────────────
-LLM_MODEL_NAME = os.getenv("MODEL_NAME", "gemini-2.5-pro")
+# LLM_MODEL_NAME = os.getenv("MODEL_NAME", "gemini-2.5-pro")  # COMMENTED OUT — expensive paid model
+LLM_MODEL_NAME = os.getenv("MODEL_NAME", "gemini-2.5-flash")  # FREE TIER — dev evaluation
 EMBEDDING_MODEL_NAME = os.getenv(
     "EMBEDDING_MODEL",
     "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
@@ -36,7 +37,8 @@ CHROMA_PERSIST_DIR = str(EMBEDDINGS_DIR)
 
 # ── LLM Generation Settings ──────────────────────────────────────
 LLM_TEMPERATURE = 0.3          # Low for factual report generation
-LLM_MAX_OUTPUT_TOKENS = 8192   # Enough for detailed reports
+# LLM_MAX_OUTPUT_TOKENS = 8192   # COMMENTED OUT — caused truncation on Fusion reports
+LLM_MAX_OUTPUT_TOKENS = 65536  # Gemini 2.5 Flash supports up to 65K output tokens
 LLM_TOP_P = 0.95
 LLM_TOP_K = 40
 
