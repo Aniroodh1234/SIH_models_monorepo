@@ -19,7 +19,6 @@ ansible/terraform/.terraform.lock.hcl
 # IDE
 .vscode/
 .idea/
-*.txt
 env.json
 ansible.zip
 

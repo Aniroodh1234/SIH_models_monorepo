@@ -154,11 +154,72 @@ Generates **3 structured JSON reports** for a given civic category using dual-st
 
 ---
 
+### 3. `GET /metrics`
+
+Returns simple service metrics used by the frontend dashboard. These values are currently placeholder/derived values and can be wired to real monitoring or DB counts later.
+
+**Request:**
+
+```
+GET /metrics
+```
+
+**Response (example):**
+
+```json
+{
+  "docs_in_pipeline": "N/A",
+  "survey": 0,
+  "backend": 0,
+  "formatted": "Docs in pipeline N/A · Survey: 0 · Backend: 0"
+}
+```
+
+Example using `curl`:
+
+```bash
+curl http://127.0.0.1:8000/metrics
+```
+
+
+### 2. `GET /analyze-report`
+
+**No input required.** Automatically analyzes ALL complaints from the SwarajDesk backend dataset using multi-category MMR retrieval and generates one comprehensive global report.
+
+**Request:**
+```
+GET /analyze-report
+```
+*(No body, no parameters — just call the endpoint)*
+
+**Response:**
+```json
+{
+  "report_type": "analyze_report",
+  "category_scope": "All",
+  "generated_at": "2026-04-12T...",
+  "executive_summary": "...",
+  "comprehensive_overview": "...",
+  "total_sample_documents_analyzed": 35,
+  "systemic_issues": [ ... ],
+  "categorical_breakdown": [ ... ],
+  "geographic_macro_analysis": { ... },
+  "root_cause_analysis": [ ... ],
+  "statistics_estimation": { ... },
+  "strategic_recommendations": [ ... ],
+  "pipeline_metadata": {
+    "total_time_seconds": 190.4,
+    "category_scope": "All",
+    "retrieval_strategy": "Multi-Category MMR (Advanced RAG)"
+  }
+}
+```
+
 ---
 
-## Streaming (Real-time) Responses
+## Streaming (Real-time) Responses — new
 
-The project supports real-time streaming responses using Server-Sent Events (SSE). The streaming endpoint runs alongside the blocking endpoint so clients can opt-in to receive incremental progress updates and LLM token chunks as reports are generated.
+This project now supports real-time streaming responses from the LLM and pipeline stages using Server-Sent Events (SSE). Two new endpoints were added in parallel to the existing blocking endpoints so clients can opt-in to receive incremental progress updates and LLM token chunks as the reports are generated.
 
 Streaming endpoint:
 - `POST /survey-report/stream` — Streaming version of `POST /survey-report` (SSE). Use `fetch()` in browsers or `curl -N` / `requests` in clients.
