@@ -1,7 +1,7 @@
 #!/bin/bash
 # ===========================================================================
 #  SwarajDesk Dual-Model EC2 Deployment Script
-#  Models: Vision_model (port 8001) + 5_report_generator_AI (port 8000)
+#  Models: Vision_model (port 8001) + 5_report_generator_AI (port 8004)
 #  Gateway: NGINX (domain-based reverse proxy)
 #  Domains: gsc-vision.abhasbehera.in | gsc-survey.abhasbehera.in
 #
@@ -47,7 +47,7 @@ VISION_PORT=8001
 # Survey/Report Model paths
 SURVEY_DIR="${MODELS_DIR}/5_report_generator_AI"
 SURVEY_VENV="${SURVEY_DIR}/venv"
-SURVEY_PORT=8000
+SURVEY_PORT=8004
 
 # S3 Configuration
 S3_BUCKET="vision-model-615645510621"
@@ -187,12 +187,53 @@ log_success "Survey model dependencies installed"
 
 log_step "Step 5/11 — Writing Environment Files"
 
+# ── Validate required environment variables ──────────────────────
+# These must be passed at runtime:
+#   sudo GEMINI_API_KEY=... HUGGINGFACE_TOKEN=... bash deploy.sh
+#
+# Or export them first:
+#   export GEMINI_API_KEY=AIzaSy...
+#   export HUGGINGFACE_TOKEN=hf_...
+#   sudo -E bash deploy.sh    (-E preserves env vars)
+
+REQUIRED_VARS=("GEMINI_API_KEY")
+OPTIONAL_VARS=("HUGGINGFACE_TOKEN" "LANGCHAIN_KEY" "GROQ_KEY")
+
+MISSING=false
+for var in "${REQUIRED_VARS[@]}"; do
+    if [[ -z "${!var:-}" ]]; then
+        log_error "Required environment variable ${var} is not set!"
+        MISSING=true
+    fi
+done
+
+if [[ "${MISSING}" == "true" ]]; then
+    echo ""
+    log_error "Usage: sudo GEMINI_API_KEY=AIzaSy... HUGGINGFACE_TOKEN=hf_... bash deploy.sh"
+    log_error ""
+    log_error "Required variables:"
+    log_error "  GEMINI_API_KEY     — Get from https://aistudio.google.com/apikey"
+    log_error ""
+    log_error "Optional variables (have defaults if not set):"
+    log_error "  HUGGINGFACE_TOKEN  — HuggingFace API token"
+    log_error "  LANGCHAIN_KEY     — LangChain API key"
+    log_error "  GROQ_KEY          — Groq API key"
+    exit 1
+fi
+
+# Set defaults for optional keys (empty string = disabled)
+HUGGINGFACE_TOKEN="${HUGGINGFACE_TOKEN:-}"
+LANGCHAIN_KEY="${LANGCHAIN_KEY:-}"
+GROQ_KEY="${GROQ_KEY:-}"
+
+log_success "API keys validated (Gemini: ${GEMINI_API_KEY:0:8}...)"
+
 # Vision Model .env
-cat > "${VISION_DIR}/.env" << 'VISION_ENV'
-HUGGINGFACEHUB_API_TOKEN=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
-LANGCHAIN_API_KEY=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
-GROQ_API_KEY=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
-GEMINI_API_KEY=AQ.Ab8RN6LAbQljVjn1zWTB-gl1jgJAbk5AoP8ejeGzbUtpiOirew
+cat > "${VISION_DIR}/.env" << VISION_ENV
+HUGGINGFACEHUB_API_TOKEN=${HUGGINGFACE_TOKEN}
+LANGCHAIN_API_KEY=${LANGCHAIN_KEY}
+GROQ_API_KEY=${GROQ_KEY}
+GEMINI_API_KEY=${GEMINI_API_KEY}
 VISION_ENV
 
 chown ubuntu:ubuntu "${VISION_DIR}/.env"
@@ -200,18 +241,18 @@ chmod 600 "${VISION_DIR}/.env"
 log_success "Vision .env written"
 
 # Survey Model .env
-cat > "${SURVEY_DIR}/.env" << 'SURVEY_ENV'
+cat > "${SURVEY_DIR}/.env" << SURVEY_ENV
 # Gemini
-GEMINI_API_KEY=AQ.Ab8RN6LAbQljVjn1zWTB-gl1jgJAbk5AoP8ejeGzbUtpiOirew
+GEMINI_API_KEY=${GEMINI_API_KEY}
 
 # Groq
-GROQ_API_KEY=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
+GROQ_API_KEY=${GROQ_KEY}
 
 # HuggingFace
-HUGGINGFACE_API_KEY=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
+HUGGINGFACE_API_KEY=${HUGGINGFACE_TOKEN}
 
 # LangChain (optional tracing)
-LANGCHAIN_API_KEY=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
+LANGCHAIN_API_KEY=${LANGCHAIN_KEY}
 LANGCHAIN_TRACING_V2=true
 
 # Config

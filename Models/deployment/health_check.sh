@@ -55,12 +55,12 @@ else
     check "Vision API (port 8001)" "no response"
 fi
 
-SURVEY_RESP=$(curl -sf --max-time 15 http://127.0.0.1:8000/health 2>/dev/null)
+SURVEY_RESP=$(curl -sf --max-time 15 http://127.0.0.1:8004/health 2>/dev/null)
 if [[ -n "${SURVEY_RESP}" ]]; then
-    check "Survey API (port 8000)" "ok"
+    check "Survey API (port 8004)" "ok"
     echo -e "    Response: ${CYAN}${SURVEY_RESP}${NC}"
 else
-    check "Survey API (port 8000)" "no response"
+    check "Survey API (port 8004)" "no response"
 fi
 
 # ─── External Domain Check ────────────────────────────────────────────
@@ -70,7 +70,7 @@ VISION_EXT=$(curl -sf --max-time 10 -H "Host: gsc-vision.abhasbehera.in" http://
 check "gsc-vision.abhasbehera.in → port 8001" "$([ -n "${VISION_EXT}" ] && echo ok || echo "no response")"
 
 SURVEY_EXT=$(curl -sf --max-time 10 -H "Host: gsc-survey.abhasbehera.in" http://127.0.0.1/health 2>/dev/null)
-check "gsc-survey.abhasbehera.in → port 8000" "$([ -n "${SURVEY_EXT}" ] && echo ok || echo "no response")"
+check "gsc-survey.abhasbehera.in → port 8004" "$([ -n "${SURVEY_EXT}" ] && echo ok || echo "no response")"
 
 # ─── Resource Usage ───────────────────────────────────────────────────
 echo -e "\n${BOLD}Resource Usage:${NC}"

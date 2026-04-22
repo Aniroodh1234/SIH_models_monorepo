@@ -11,7 +11,7 @@ Internet → Cloudflare (SSL) → EC2 NGINX (port 80) → Model APIs
                  │                             │
     gsc-vision.abhasbehera.in     gsc-survey.abhasbehera.in
            ↓                              ↓
-    Vision FastAPI (8001)       Survey FastAPI (8000)
+    Vision FastAPI (8001)       Survey FastAPI (8004)
     [systemd: vision-service]   [systemd: survey-service]
 ```
 
@@ -78,7 +78,7 @@ That's it. The script handles everything automatically (~15 minutes).
 
 | Item | Value |
 |---|---|
-| Port | 8000 |
+| Port | 8004 |
 | systemd | `survey-service` |
 | Entry point | `uvicorn main:app` |
 | Working dir | `Models/5_report_generator_AI/` |
