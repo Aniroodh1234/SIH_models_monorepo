@@ -15,3 +15,5 @@ logs/
 # IDE
 .vscode/
 .idea/
+
+docker-compose.yml
