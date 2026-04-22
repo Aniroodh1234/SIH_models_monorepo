@@ -1,0 +1,48 @@
+[Unit]
+Description=SwarajDesk Survey Report Generator API (RAG Pipeline)
+Documentation=https://github.com/Aniroodh1234/SIH_models_monorepo
+After=network.target
+
+[Service]
+# ── Process Identity ──
+User=ubuntu
+Group=ubuntu
+
+# ── Working Directory ──
+# Must be 5_report_generator_AI/ because main.py imports from app/, config/,
+# utils/ etc. using relative paths. The .env is also at this level.
+WorkingDirectory=/home/ubuntu/SIH_models_monorepo/Models/5_report_generator_AI
+
+# ── Environment ──
+Environment="PATH=/home/ubuntu/SIH_models_monorepo/Models/5_report_generator_AI/venv/bin:/usr/local/bin:/usr/bin:/bin"
+
+# ── Start Command ──
+# Single worker to conserve memory on t3.large (8GB RAM).
+# ChromaDB + embedding model + LangChain loaded at startup.
+ExecStart=/home/ubuntu/SIH_models_monorepo/Models/5_report_generator_AI/venv/bin/uvicorn \
+    main:app \
+    --host 0.0.0.0 \
+    --port 8000 \
+    --workers 1 \
+    --timeout-keep-alive 75 \
+    --log-level info
+
+# ── Restart Policy ──
+Restart=always
+RestartSec=10
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+# ── Resource Limits ──
+# Allow up to 3GB for this service (ChromaDB + embeddings + LLM calls)
+MemoryMax=3G
+# Increase file descriptor limit for concurrent requests + SSE streams
+LimitNOFILE=65536
+
+# ── Logging ──
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=survey-service
+
+[Install]
+WantedBy=multi-user.target

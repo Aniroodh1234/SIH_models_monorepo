@@ -1,0 +1,49 @@
+[Unit]
+Description=SwarajDesk Vision Model API (Hybrid VLM + ViT)
+Documentation=https://github.com/Aniroodh1234/SIH_models_monorepo
+After=network.target
+
+[Service]
+# ── Process Identity ──
+User=ubuntu
+Group=ubuntu
+
+# ── Working Directory ──
+# Must be Vision_model/ (not Fastapi_app/) because uvicorn resolves
+# the module path Fastapi_app.main:app relative to WorkingDirectory.
+# The .env file is also at this level.
+WorkingDirectory=/home/ubuntu/SIH_models_monorepo/Models/Vision_model
+
+# ── Environment ──
+Environment="PATH=/home/ubuntu/SIH_models_monorepo/Models/Vision_model/venv/bin:/usr/local/bin:/usr/bin:/bin"
+
+# ── Start Command ──
+# Single worker to conserve memory on t3.large (8GB RAM).
+# The 4 ViT models (~1.4GB) are loaded at import time.
+ExecStart=/home/ubuntu/SIH_models_monorepo/Models/Vision_model/venv/bin/uvicorn \
+    Fastapi_app.main:app \
+    --host 0.0.0.0 \
+    --port 8001 \
+    --workers 1 \
+    --timeout-keep-alive 75 \
+    --log-level info
+
+# ── Restart Policy ──
+Restart=always
+RestartSec=10
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+# ── Resource Limits ──
+# Allow up to 4GB for this service (ViT models + PyTorch + inference)
+MemoryMax=4G
+# Increase file descriptor limit for concurrent requests
+LimitNOFILE=65536
+
+# ── Logging ──
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=vision-service
+
+[Install]
+WantedBy=multi-user.target
