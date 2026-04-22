@@ -96,11 +96,22 @@ apt-get install -y \
     git \
     curl \
     unzip \
-    awscli \
     jq \
     htop
 
 log_success "System packages installed"
+
+# Install AWS CLI v2 (not available via apt on Ubuntu 24.04+)
+if command -v aws &>/dev/null; then
+    log_info "AWS CLI already installed: $(aws --version)"
+else
+    log_info "Installing AWS CLI v2..."
+    curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip"
+    unzip -qo /tmp/awscliv2.zip -d /tmp/
+    /tmp/aws/install
+    rm -rf /tmp/awscliv2.zip /tmp/aws
+    log_success "AWS CLI v2 installed: $(aws --version)"
+fi
 
 # ─── Step 2: Swap Space (Critical for t3.large with 8GB RAM) ─────────────
 
