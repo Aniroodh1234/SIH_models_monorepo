@@ -1,0 +1,265 @@
+[
+    {
+        "title": "Company Overview",
+        "content": "Swaraj Desk is a unified citizen service platform designed to simplify access to essential government schemes, certificates, utilities, and public services. Built to promote transparent and efficient governance, the portal enables citizens to apply for services, track applications, upload documents, and receive real-time updates — all through a single, user-friendly interface. Swaraj Desk bridges the gap between citizens and government departments by offering digital convenience, accuracy, and a streamlined service-delivery workflow.",
+        "tags": [
+            "company",
+            "about",
+            "overview",
+            "brand",
+            "organization"
+        ]
+    },
+    {
+        "title": "Mission Statement",
+        "content": "Our mission is to empower citizens by providing a secure, accessible, and transparent digital platform that simplifies public service delivery. We aim to deliver reliable information, reduce processing delays, and create seamless user experiences that strengthen trust between the government and the people.",
+        "tags": [
+            "mission",
+            "goal",
+            "purpose",
+            "values",
+            "ethics"
+        ]
+    },
+    {
+        "title": "Vision Statement",
+        "content": "Our vision is to become the most trusted and transformative citizen-service platform by enabling fully digital, efficient, and inclusive governance. We strive to improve public service workflows through innovation, automation, and user-centric design, ensuring that every citizen receives timely support with complete transparency and accountability.",
+        "tags": [
+            "vision",
+            "future",
+            "innovation",
+            "strategy",
+            "growth"
+        ]
+    },
+    {
+        "title": "Core Values",
+        "content": "Swaraj Desk operates on the foundations of Integrity, Accountability, Transparency, Security, Innovation, and Public Service Excellence.",
+        "tags": [
+            "values",
+            "ethics",
+            "culture",
+            "behavior",
+            "principles"
+        ]
+    },
+    {
+        "title": "Service Portfolio Overview",
+        "content": "Our service portfolio includes citizen application submission, certificate processing, grievance redressal, departmental workflow routing, document verification, and digital communication — each focused on improving accessibility, reducing delays, and maximizing service efficiency.",
+        "tags": [
+            "services",
+            "products",
+            "solutions",
+            "features",
+            "ecosystem"
+        ]
+    },
+    {
+        "title": "Supported Platforms",
+        "content": "Swaraj Desk is accessible via web browsers and Android devices. For optimal performance, users are recommended to access the portal using Chrome 90+, Firefox 78+, or Edge 90+.",
+        "tags": [
+            "platforms",
+            "devices",
+            "browsers",
+            "mobile",
+            "compatibility"
+        ]
+    },
+    {
+        "title": "User Registration Guide",
+        "content": "To register on Swaraj Desk: visit the portal → click 'Register' → enter personal details → provide location information → set a password → click 'Create Account' → complete account setup and profile activation.",
+        "tags": [
+            "registration",
+            "signup",
+            "account",
+            "portal",
+            "identity"
+        ]
+    },
+    {
+        "title": "Login Guide",
+        "content": "Enter your registered mobile number or email and password on the Swaraj Desk login page to access your dashboard.",
+        "tags": [
+            "login",
+            "authentication",
+            "access",
+            "portal",
+            "credentials"
+        ]
+    },
+    {
+        "title": "Password Reset Procedure",
+        "content": "Click 'Forgot Password' on the login page → enter your registered mobile number or email → receive a verification OTP → create a new password following platform guidelines.",
+        "tags": [
+            "password",
+            "reset",
+            "security",
+            "recovery",
+            "account"
+        ]
+    },
+    {
+        "title": "Profile Management",
+        "content": "Users can update personal details, manage contact information, change notification preferences, and upload profile photos directly from the Swaraj Desk dashboard.",
+        "tags": [
+            "profile",
+            "user-settings",
+            "preferences",
+            "dashboard",
+            "identity"
+        ]
+    },
+    {
+        "title": "Document Upload Guidelines",
+        "content": "PDF, JPG, and PNG formats are supported for document uploads. Files must be clear, readable, and within the allowed size limit. Altered or tampered documents will be rejected during verification.",
+        "tags": [
+            "document",
+            "upload",
+            "files",
+            "verification",
+            "requirements"
+        ]
+    },
+    {
+        "title": "Document Verification Process",
+        "content": "Uploaded documents undergo automated system validation followed by manual verification by authorized officials. Users receive acceptance or rejection notifications via SMS, email, or in-portal alerts.",
+        "tags": [
+            "verification",
+            "documents",
+            "approval",
+            "review",
+            "validation"
+        ]
+    },
+    {
+        "title": "Application Tracking",
+        "content": "Users can track the status of their submitted applications through Dashboard → My Complaints → View Status, with stage-wise progress updates available at every step.",
+        "tags": [
+            "tracking",
+            "application",
+            "status",
+            "history",
+            "dashboard"
+        ]
+    },
+    {
+        "title": "Notification System",
+        "content": "Swaraj Desk delivers alerts via SMS, email, and in-portal notifications for important updates such as approvals, rejections, pending actions, and timeline changes.",
+        "tags": [
+            "notifications",
+            "email",
+            "sms",
+            "alerts",
+            "communication"
+        ]
+    },
+    {
+        "title": "Portal Maintenance Downtime",
+        "content": "The portal undergoes scheduled maintenance during predefined time windows. During these periods, services may be temporarily unavailable, and users are advised to retry after the maintenance window.",
+        "tags": [
+            "maintenance",
+            "downtime",
+            "availability",
+            "schedule",
+            "system"
+        ]
+    },
+    {
+        "title": "Common Error: Unable to Login",
+        "content": "Login issues may occur due to incorrect credentials, expired passwords, account lockout, or temporary system maintenance. Users may reset their passwords or contact customer support for further assistance.",
+        "tags": [
+            "login-error",
+            "troubleshoot",
+            "authentication",
+            "support",
+            "account"
+        ]
+    },
+    {
+        "title": "Customer Support",
+        "content": "Users can reach customer support via live chat, email, and the dedicated helpline during working hours for assistance with applications, payments, and portal navigation.",
+        "tags": [
+            "support",
+            "helpdesk",
+            "contact",
+            "service",
+            "assistance"
+        ]
+    },
+    {
+        "title": "Escalation Matrix",
+        "content": "Escalation hierarchy: Level 1 → Support Agent → Level 2 → Municipal Admin → Level 3 → State Admin for final resolution.",
+        "tags": [
+            "support",
+            "escalation",
+            "authority",
+            "service",
+            "contact"
+        ]
+    },
+    {
+        "title": "Complaint Registration Workflow",
+        "content": "Create a new complaint → select the relevant category → describe the issue in detail → choose the location using the map (manual entry or auto-detection) → select the urgency level → upload supporting documents → choose whether to make the complaint public or private → review all details → submit.",
+        "tags": [
+            "complaint",
+            "registration",
+            "issue reporting",
+            "workflow",
+            "grievance"
+        ]
+    },
+    {
+        "title": "How to Engage with the Community?",
+        "content": "Users can engage with the Swaraj Desk community by responding to public complaints, sharing valuable insights, and contributing meaningful updates. Upvoting valid concerns, offering constructive suggestions, and maintaining respectful communication fosters awareness and accelerates issue resolution.",
+        "tags": [
+            "community engagement",
+            "public interaction",
+            "discussion",
+            "support",
+            "collaboration"
+        ]
+    },
+    {
+        "title": "How to Chat with the Current Admin?",
+        "content": "To communicate with the current admin, open the 'Contact Admin' section and start a conversation using the built-in messaging feature. Users can share complaint details, attach documents or images, and request updates. Keeping messages polite, clear, and concise ensures faster support.",
+        "tags": [
+            "admin chat",
+            "support communication",
+            "direct messaging",
+            "contact admin",
+            "assistance"
+        ]
+    },
+    {
+        "title": "Image-Based Complaint Submission Guidelines",
+        "content": "Swaraj Desk allows complaints to be submitted based on uploaded images. Users must upload clear, unedited images that accurately represent the issue to ensure proper validation and classification. Blurred, obstructed, or heavily modified images may lead to delays or rejection.",
+        "tags": [
+            "image complaint",
+            "image quality",
+            "automated validation",
+            "complaint submission"
+        ]
+    },
+    {
+        "title": "Bot Scope of Assistance",
+        "content": "The Swaraj Desk chatbot assists with service information, application steps, document guidelines, portal navigation, troubleshooting, and account-related queries.",
+        "tags": [
+            "bot",
+            "scope",
+            "allowed",
+            "responses",
+            "assistance"
+        ]
+    },
+    {
+        "title": "Bot Restricted Queries",
+        "content": "The chatbot cannot assist with medical advice, political debates, legal interpretations, examination answers, or any information unrelated to Swaraj Desk.",
+        "tags": [
+            "bot",
+            "restrictions",
+            "safety",
+            "guardrail",
+            "policy"
+        ]
+    }
+]
