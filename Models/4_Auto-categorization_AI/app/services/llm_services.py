@@ -2,11 +2,11 @@ import os
 import json
 from dotenv import load_dotenv
 
-# [DISABLED — Groq backend]
-# from langchain_groq import ChatGroq
+# [ACTIVE — Groq backend]
+from langchain_groq import ChatGroq
 
-# [ACTIVE — Gemini backend]
-from langchain_google_genai import ChatGoogleGenerativeAI
+# [DISABLED — Gemini backend]
+# from langchain_google_genai import ChatGoogleGenerativeAI
 
 from langchain_core.messages import HumanMessage
 
@@ -16,11 +16,11 @@ from app.services.classifier_service import predict_category
 
 load_dotenv()
 
-# [DISABLED — Groq API key]
-# GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+# [ACTIVE — Groq API key]
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-# [ACTIVE — Gemini API key]
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+# [DISABLED — Gemini API key]
+# GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 CONFIDENCE_THRESHOLD = 0.65
 
@@ -174,19 +174,19 @@ def call_llm_classifier(complaint, predicted_category):
 
     messages = [HumanMessage(content=prompt)]
 
-    # [DISABLED — Groq LLM]
-    # model = ChatGroq(
-    #     model="openai/gpt-oss-120b",
-    #     groq_api_key=GROQ_API_KEY,
-    #     temperature=0
-    # )
-
-    # [ACTIVE — Gemini LLM]
-    model = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash",
-        google_api_key=GEMINI_API_KEY,
+    # [ACTIVE — Groq LLM]
+    model = ChatGroq(
+        model="openai/gpt-oss-120b",
+        groq_api_key=GROQ_API_KEY,
         temperature=0
     )
+
+    # [DISABLED — Gemini LLM]
+    # model = ChatGoogleGenerativeAI(
+    #     model="gemini-2.5-flash",
+    #     google_api_key=GEMINI_API_KEY,
+    #     temperature=0
+    # )
 
     response = model.invoke(messages)
 
