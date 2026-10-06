@@ -145,11 +145,10 @@ def main():
     # Load embedding model ONCE
     print("\nLoading embedding model...")
     try:
-        from langchain_google_genai import GoogleGenerativeAIEmbeddings
-        from config.settings import GEMINI_API_KEY
-        os.environ["GOOGLE_API_KEY"] = GEMINI_API_KEY
-        embedding_fn = GoogleGenerativeAIEmbeddings(
-            model="models/gemini-embedding-001"
+        from langchain_community.embeddings import HuggingFaceEmbeddings
+        from config.settings import EMBEDDING_MODEL_NAME
+        embedding_fn = HuggingFaceEmbeddings(
+            model_name=EMBEDDING_MODEL_NAME
         )
         _ = embedding_fn.embed_query("test_query")
         print("Embedding model loaded and validated.\n")

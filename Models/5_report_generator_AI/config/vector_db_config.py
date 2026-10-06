@@ -12,22 +12,15 @@ from utils.logger import get_logger
 log = get_logger("vector_db_config")
 
 
-def get_embedding_function() -> "GoogleGenerativeAIEmbeddings":
+def get_embedding_function() -> "HuggingFaceEmbeddings":
     """
-    Initialize the Google Generative AI embedding function.
+    Initialize the HuggingFace embedding function locally.
     """
-    log.info(f"Loading embedding model: gemini-embedding-001")
-    from langchain_google_genai import GoogleGenerativeAIEmbeddings
-    from config.settings import GEMINI_API_KEY
-    import os
-    import warnings
+    from langchain_community.embeddings import HuggingFaceEmbeddings
+    log.info(f"Loading embedding model: {EMBEDDING_MODEL_NAME}")
 
-    # Suppress the noisy API key warning from langchain-google-genai
-    warnings.filterwarnings("ignore", message="Both GOOGLE_API_KEY and GEMINI_API_KEY are set.*")
-
-    os.environ["GOOGLE_API_KEY"] = GEMINI_API_KEY
-    return GoogleGenerativeAIEmbeddings(
-        model="models/gemini-embedding-001"
+    return HuggingFaceEmbeddings(
+        model_name=EMBEDDING_MODEL_NAME
     )
 
 def get_vector_store(

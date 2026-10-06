@@ -9,7 +9,7 @@ import os
 import json
 from typing import List, Optional
 
-from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from tqdm import tqdm
@@ -40,16 +40,13 @@ class EmbeddingModel:
         log.info(f"Embedding model: {self.model_name}")
         log.info(f"Persist directory: {self.persist_directory}")
 
-    def _get_embedding_function(self) -> "GoogleGenerativeAIEmbeddings":
+    def _get_embedding_function(self) -> "HuggingFaceEmbeddings":
         """Initialize the embedding function (cached singleton)."""
         if self._embedding_function is None:
             log.info("Loading embedding model (first time)...")
-            from langchain_google_genai import GoogleGenerativeAIEmbeddings
-            from config.settings import GEMINI_API_KEY
-            import os
-            os.environ["GOOGLE_API_KEY"] = GEMINI_API_KEY
-            self._embedding_function = GoogleGenerativeAIEmbeddings(
-                model="models/gemini-embedding-001"
+            from langchain_community.embeddings import HuggingFaceEmbeddings
+            self._embedding_function = HuggingFaceEmbeddings(
+                model_name=self.model_name
             )
             log.info("Embedding model loaded.")
         return self._embedding_function

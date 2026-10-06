@@ -1,114 +1,57 @@
 """
-Gemini LLM Loader — wraps Google Generative AI for structured JSON report generation.
-
-Provides:
-  - GeminiLLM   : Main LLM wrapper with generate_json() and expand_query()
-  - get_llm()   : Singleton factory (lazy-initialized)
+Groq LLM Loader — wraps Groq for structured JSON report generation.
 """
 
 import os
 import time
 from typing import Optional
+from dotenv import load_dotenv
 
-import google.generativeai as genai
+from langchain_groq import ChatGroq
+from langchain_core.messages import HumanMessage
 
 from config.settings import (
-    GEMINI_API_KEY,
-    LLM_MODEL_NAME,
     LLM_TEMPERATURE,
     LLM_MAX_OUTPUT_TOKENS,
     LLM_TOP_P,
-    LLM_TOP_K,
 )
 from utils.json_parser import extract_json
 from utils.logger import get_logger
 
 log = get_logger("llm_loader")
 
-# ── Singleton instance ────────────────────────────────────────────
-_llm_instance: Optional["GeminiLLM"] = None
+_llm_instance = None
 
 
-class GeminiLLM:
-    """
-    Wrapper around Google Gemini for structured JSON report generation.
-
-    Key methods:
-      generate_json(prompt) → dict
-      expand_query(category, keywords) → str
-    """
-
+class GroqLLM:
     def __init__(self):
-        if not GEMINI_API_KEY:
-            raise ValueError(
-                "GEMINI_API_KEY is not set. "
-                "Please add it to your .env file."
-            )
+        load_dotenv()
+        # the user requested openai/gpt-oss-120b
+        self.model_name = "openai/gpt-oss-120b"
+        
+        api_key = os.getenv("GROQ_API_KEY")
+        if not api_key:
+            raise ValueError("GROQ_API_KEY is not set.")
 
-        log.info(f"Initializing Gemini LLM: {LLM_MODEL_NAME}")
-        os.environ["GOOGLE_API_KEY"] = GEMINI_API_KEY
-        genai.configure(api_key=GEMINI_API_KEY)
+        log.info(f"Initializing Groq LLM: {self.model_name}")
 
-        self.model_name = LLM_MODEL_NAME
-
-        # JSON generation config — forces pure JSON output (no code fences)
-        self._json_generation_config = genai.types.GenerationConfig(
+        self._model = ChatGroq(
+            model=self.model_name,
+            groq_api_key=api_key,
             temperature=LLM_TEMPERATURE,
-            max_output_tokens=LLM_MAX_OUTPUT_TOKENS,
-            top_p=LLM_TOP_P,
-            top_k=LLM_TOP_K,
-            response_mime_type="application/json",
+            max_tokens=LLM_MAX_OUTPUT_TOKENS,
+            model_kwargs={"top_p": LLM_TOP_P}
         )
-
-        # Text generation config — for query expansion (plain text)
-        self._text_generation_config = genai.types.GenerationConfig(
+        
+        # text model (for queries)
+        self._text_model = ChatGroq(
+            model=self.model_name,
+            groq_api_key=api_key,
             temperature=0.4,
-            max_output_tokens=200,
+            max_tokens=200,
         )
 
-        # Safety settings — prevent SAFETY blocks on benign civic data
-        self._safety_settings = [
-            {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
-            {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
-            {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
-            {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
-        ]
-
-        # Model for JSON report generation
-        self._model = genai.GenerativeModel(
-            model_name=self.model_name,
-            generation_config=self._json_generation_config,
-            safety_settings=self._safety_settings,
-        )
-
-        # Model for text query expansion
-        self._text_model = genai.GenerativeModel(
-            model_name=self.model_name,
-            generation_config=self._text_generation_config,
-            safety_settings=self._safety_settings,
-        )
-
-        # Streaming config — plain text, NO response_mime_type
-        # (response_mime_type="application/json" is incompatible with stream=True)
-        self._stream_generation_config = genai.types.GenerationConfig(
-            temperature=LLM_TEMPERATURE,
-            max_output_tokens=LLM_MAX_OUTPUT_TOKENS,
-            top_p=LLM_TOP_P,
-            top_k=LLM_TOP_K,
-        )
-
-        # Model for streaming JSON report generation
-        self._stream_model = genai.GenerativeModel(
-            model_name=self.model_name,
-            generation_config=self._stream_generation_config,
-            safety_settings=self._safety_settings,
-        )
-
-        log.info(
-            f"Gemini LLM ready: model={self.model_name}, "
-            f"temp={LLM_TEMPERATURE}, max_tokens={LLM_MAX_OUTPUT_TOKENS}, "
-            f"response_mime_type=application/json, streaming=enabled"
-        )
+        log.info(f"Groq LLM ready: model={self.model_name}")
 
     def generate_json(
         self,
@@ -116,97 +59,38 @@ class GeminiLLM:
         max_retries: int = 3,
         retry_delay: float = 2.0,
     ) -> dict:
-        """
-        Send a prompt to Gemini and parse the JSON response.
-
-        Args:
-            prompt: Full prompt string (should instruct LLM to return JSON)
-            max_retries: Number of retry attempts on failure
-            retry_delay: Seconds between retries
-
-        Returns:
-            Parsed JSON as dict, or empty dict on failure
-        """
         for attempt in range(1, max_retries + 1):
             try:
-                log.info(
-                    f"Generating JSON report "
-                    f"(attempt {attempt}/{max_retries})..."
-                )
-
-                response = self._model.generate_content(prompt)
-
-                # Extract text from response (handles thinking model)
-                raw_text = self._extract_response_text(response)
+                log.info(f"Generating JSON report (attempt {attempt}/{max_retries})...")
+                messages = [HumanMessage(content=prompt)]
+                response = self._model.invoke(messages)
+                raw_text = response.content
 
                 if not raw_text:
-                    log.warning(f"Empty response from Gemini (attempt {attempt})")
-                    if attempt < max_retries:
-                        time.sleep(retry_delay)
+                    log.warning(f"Empty response from Groq (attempt {attempt})")
+                    if attempt < max_retries: time.sleep(retry_delay)
                     continue
 
-                log.debug(
-                    f"Raw LLM response length: {len(raw_text)} chars"
-                )
-
-                # Parse JSON from response
-                # With response_mime_type="application/json", the response
-                # should be pure JSON, but we still use extract_json for safety
                 result = extract_json(raw_text)
 
-                if result is None:
-                    log.warning(
-                        f"Could not parse JSON from response "
-                        f"(attempt {attempt}). "
-                        f"Response preview: {raw_text[:200]}"
-                    )
-                    if attempt < max_retries:
-                        time.sleep(retry_delay)
+                if result is None or not isinstance(result, dict):
+                    log.warning(f"Could not parse JSON from response (attempt {attempt}).")
+                    if attempt < max_retries: time.sleep(retry_delay)
                     continue
 
-                if not isinstance(result, dict):
-                    log.warning(
-                        f"Parsed result is not a dict "
-                        f"(got {type(result).__name__})"
-                    )
-                    if attempt < max_retries:
-                        time.sleep(retry_delay)
-                    continue
-
-                log.info(
-                    f"JSON report generated successfully "
-                    f"({len(result)} top-level keys)"
-                )
+                log.info(f"JSON report generated successfully ({len(result)} top-level keys)")
                 return result
 
             except Exception as e:
-                log.error(
-                    f"Gemini API error (attempt {attempt}/{max_retries}): {e}"
-                )
+                log.error(f"Groq API error (attempt {attempt}/{max_retries}): {e}")
                 if attempt < max_retries:
-                    time.sleep(retry_delay * attempt)  # Exponential backoff
+                    time.sleep(retry_delay * attempt)
                 else:
-                    log.error(
-                        f"All {max_retries} attempts failed. "
-                        f"Returning empty dict."
-                    )
+                    log.error(f"All {max_retries} attempts failed. Returning empty dict.")
 
         return {}
 
     def generate_json_stream(self, prompt: str):
-        """
-        Stream raw token chunks from Gemini as they are generated.
-
-        Uses the stream model (no response_mime_type) so that
-        stream=True actually delivers incremental chunks.
-
-        Yields:
-            str — successive token chunks (partial JSON text)
-
-        After all chunks are yielded, the caller is responsible for
-        assembling and parsing the full JSON via extract_json().
-        """
-        # Prepend instruction to avoid markdown code fences in streaming mode
         streaming_instruction = (
             "IMPORTANT: Output ONLY raw JSON. Do NOT wrap the output in "
             "markdown code fences (```json or ```). Start directly with { "
@@ -216,53 +100,15 @@ class GeminiLLM:
 
         log.info("Starting streaming JSON generation...")
         try:
-            stream = self._stream_model.generate_content(full_prompt, stream=True)
-            for chunk in stream:
-                try:
-                    text = chunk.text
-                    if text:
-                        yield text
-                except (ValueError, AttributeError):
-                    # Skip thought/metadata chunks from thinking model
-                    continue
+            messages = [HumanMessage(content=full_prompt)]
+            # Use the streaming interface of Langchain ChatGroq
+            for chunk in self._model.stream(messages):
+                if chunk.content:
+                    yield chunk.content
         except Exception as e:
             log.error(f"Streaming generation error: {e}")
             raise
         log.info("Streaming JSON generation complete.")
-
-    def _extract_response_text(self, response) -> str:
-        """
-        Extract text from a Gemini response, handling thinking models.
-
-        For Gemini 2.5 thinking models, the response may contain
-        both 'thought' parts and regular text parts. We skip
-        thought parts and concatenate only the text parts.
-
-        Returns:
-            The extracted text, or empty string if no text is available.
-        """
-        try:
-            # Quick path: response.text works for most cases
-            if response and response.text:
-                return response.text
-        except (ValueError, AttributeError):
-            pass
-
-        # Fallback: extract from parts manually (thinking model)
-        try:
-            if response and response.candidates:
-                parts = response.candidates[0].content.parts
-                text_parts = []
-                for part in parts:
-                    thought = getattr(part, 'thought', False)
-                    if not thought and hasattr(part, 'text') and part.text:
-                        text_parts.append(part.text)
-                if text_parts:
-                    return "\n".join(text_parts)
-        except Exception as e:
-            log.warning(f"Failed to extract response parts: {e}")
-
-        return ""
 
     def expand_query(
         self,
@@ -270,22 +116,7 @@ class GeminiLLM:
         keywords: list,
         max_retries: int = 2,
     ) -> str:
-        """
-        Expand a category into a rich semantic search query.
-
-        Uses the LLM to generate an expanded query that captures the
-        semantic space of the category for better retrieval recall.
-
-        Args:
-            category: User-facing category name
-            keywords: Seed keywords for the category
-            max_retries: Number of retry attempts
-
-        Returns:
-            Expanded query string for vector search
-        """
         kw_str = ", ".join(keywords) if keywords else category
-
         prompt = (
             f"Generate a comprehensive semantic search query (1-2 sentences) "
             f"for retrieving documents about civic complaints and issues "
@@ -301,49 +132,35 @@ class GeminiLLM:
 
         for attempt in range(1, max_retries + 1):
             try:
-                response = self._text_model.generate_content(prompt)
+                messages = [HumanMessage(content=prompt)]
+                response = self._text_model.invoke(messages)
+                text = response.content
 
-                text = self._extract_response_text(response)
                 if text:
                     expanded = text.strip()
-                    log.info(
-                        f"Query expanded for '{category}': "
-                        f"{expanded[:80]}..."
-                    )
+                    log.info(f"Query expanded for '{category}': {expanded[:80]}...")
                     return expanded
                 else:
-                    log.warning(
-                        f"Query expansion returned empty response "
-                        f"(attempt {attempt}/{max_retries})"
-                    )
+                    log.warning(f"Query expansion returned empty response (attempt {attempt}/{max_retries})")
 
             except Exception as e:
-                log.warning(
-                    f"Query expansion failed (attempt {attempt}/{max_retries}): {e}"
-                )
+                log.warning(f"Query expansion failed (attempt {attempt}/{max_retries}): {e}")
                 if attempt < max_retries:
                     time.sleep(1.0)
 
-        # Fallback: simple keyword join
         fallback = f"{category} {' '.join(keywords)}"
         log.info(f"Using fallback query: {fallback}")
         return fallback
 
     def __repr__(self) -> str:
-        return f"GeminiLLM(model={self.model_name})"
+        return f"GroqLLM(model={self.model_name})"
 
+# Alias for backward compatibility
+GeminiLLM = GroqLLM
 
-# ── Singleton Factory ─────────────────────────────────────────────
-
-def get_llm() -> GeminiLLM:
-    """
-    Get or initialize the shared GeminiLLM instance (singleton).
-
-    Returns:
-        GeminiLLM instance
-    """
+def get_llm() -> GroqLLM:
     global _llm_instance
     if _llm_instance is None:
-        log.info("Creating GeminiLLM singleton instance...")
-        _llm_instance = GeminiLLM()
+        log.info("Creating GroqLLM singleton instance...")
+        _llm_instance = GroqLLM()
     return _llm_instance
