@@ -214,4 +214,6 @@ EXECUTION_GUIDE.txt
 static
 terraform
 lambda
-*.txt
+deployment_in_EC2.txt
+streamlit_app.py
+.streamlit

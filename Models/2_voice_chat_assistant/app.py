@@ -309,12 +309,12 @@ Always follow these extra rules:
 
 
 # Interact in hindi with user
-    reply = answer_user_query(
-        "शिकायत कैसे दर्ज करें",
-        collection,
-        language="hindi"
-    )
-    print(reply)
+#     reply = answer_user_query(
+#         "शिकायत कैसे दर्ज करें",
+#         collection,
+#         language="hindi"
+#     )
+#     print(reply)
 
 # reply = answer_user_query(
 #     "Password reset karne ka tarika kya hai?",
@@ -325,7 +325,7 @@ Always follow these extra rules:
 
 
 ## FINAL TESTING
-user_question = "How can I reset my password?"
-reply = answer_user_query(user_question, collection)
-print("User:", user_question)
-print("Bot :", reply)
+# user_question = "How can I reset my password?"
+# reply = answer_user_query(user_question, collection)
+# print("User:", user_question)
+# print("Bot :", reply)
